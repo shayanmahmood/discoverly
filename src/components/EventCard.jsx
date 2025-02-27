@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, MapPin } from 'lucide-react';
+import { Button } from './ui/Button';
 
 const EventCard = ({ 
   title, 
@@ -36,9 +37,9 @@ const EventCard = ({
           <MapPin size={14} className="mr-1.5 sm:mr-2 flex-shrink-0" />
           <span className="text-xs sm:text-sm truncate">{location}</span>
         </div>
-        <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-1.5 sm:py-2 rounded-md transition duration-300 font-medium text-xs sm:text-sm">
+        <Button className="w-full  text-white py-1.5 sm:py-2 rounded-md transition duration-300 font-medium text-xs sm:text-sm">
           Register Now
-        </button>
+        </Button>
       </div>
     </div>
   );
