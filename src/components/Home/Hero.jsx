@@ -1,5 +1,7 @@
-import SearchBar from "../components/ui/SearchBar";
-import { cn } from "..//lib/utils";
+/* eslint-disable react/prop-types */
+/* eslint-disable react/react-in-jsx-scope */
+import SearchBar from "../ui/SearchBar";
+import { cn } from "../../lib/utils";
 
 const Hero = ({ className }) => {
   return (

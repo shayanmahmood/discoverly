@@ -97,10 +97,10 @@ const Footer = () => {
 
           <div className="space-y-4">
             <h3 className="font-semibold text-lg mb-4">
-              Subscribe to Our Newsletter
+              Also Subscribe to Our Private Newsletter
             </h3>
-            <p className="text-sm text-muted-foreground">
-              Get updates on the latest events and offerings
+            <p className="text-sm text-green-700 font-bold font-mono">
+              Get updates on the latest DEALS and BLACKTICKETS
             </p>
             <div className="flex flex-col space-y-2">
               <Input

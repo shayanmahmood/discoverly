@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React from 'react';
 import { Calendar, MapPin } from 'lucide-react';
 import { Button } from './ui/Button';

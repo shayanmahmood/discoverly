@@ -1,42 +1,11 @@
 import React, { useRef } from "react";
-import { cn } from "../lib/utils";
-import { Button } from "../components/ui/Button";
+import { cn } from "../../lib/utils";
+import { Button } from "../ui/Button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-const subTopics = [
-  {
-    id: "ai",
-    name: "AI & Machine Learning",
-    count: 128,
-    category: "technology",
-  },
-  { id: "web3", name: "Web3 & Blockchain", count: 85, category: "technology" },
-  { id: "ux", name: "UX/UI Design", count: 76, category: "art" },
-  {
-    id: "marketing",
-    name: "Digital Marketing",
-    count: 94,
-    category: "business",
-  },
-  { id: "yoga", name: "Yoga & Meditation", count: 112, category: "health" },
-  { id: "film", name: "Film Festivals", count: 43, category: "entertainment" },
-  { id: "crypto", name: "Cryptocurrency", count: 67, category: "business" },
-  { id: "photography", name: "Photography", count: 59, category: "art" },
-  { id: "startups", name: "Startups", count: 81, category: "business" },
-  { id: "cooking", name: "Cooking Classes", count: 74, category: "food" },
-  { id: "gaming", name: "Gaming", count: 90, category: "entertainment" },
-  {
-    id: "languages",
-    name: "Language Exchange",
-    count: 65,
-    category: "education",
-  },
-  { id: "music", name: "Live Music", count: 103, category: "entertainment" },
-  { id: "finance", name: "Personal Finance", count: 58, category: "business" },
-  { id: "vr", name: "Virtual Reality", count: 47, category: "technology" },
-];
+import { useEvents } from "../../Contexts/EventProvider";
 
 const SubTopicCarousel = ({ className }) => {
+  const { SubTopics } = useEvents();
   const scrollContainerRef = useRef(null);
 
   const scroll = (direction) => {
@@ -85,7 +54,7 @@ const SubTopicCarousel = ({ className }) => {
             className="flex overflow-x-auto scrollbar-hide gap-4 pb-4 snap-x"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
-            {subTopics.map((topic, index) => (
+            {SubTopics.map((topic, index) => (
               <div
                 key={topic.id}
                 className="flex-none snap-start min-w-[260px] sm:min-w-[280px] animate-fade-in opacity-0"

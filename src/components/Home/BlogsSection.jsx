@@ -1,6 +1,6 @@
 /* eslint-disable react/react-in-jsx-scope */
 import { ArrowRight } from "lucide-react";
-import BlogCard from "../components/BlogCard";
+import BlogCard from "../BlogCard";
 
 function BlogsSection() {
   return (

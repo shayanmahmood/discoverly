@@ -22,13 +22,10 @@ const EventCard = ({
   return (
     <div
       className={cn(
-        "group overflow-hidden rounded-xl bg-card border border-border transition-all duration-300 hover:shadow-lg hover:border-primary/20 flex flex-col h-full",
+        "group overflow-hidden rounded-xl bg-card border border-border transition-all duration-300 hover:shadow-lg hover:border-primary/20 flex flex-col h-full min-h-[350px] md:min-h-[400px]",
         className
       )}
-      style={{
-        height: "420px", // Fixed height for all cards
-        ...style,
-      }}
+      style={style}
     >
       <div className="relative">
         <AspectRatio ratio={16 / 9}>
@@ -66,7 +63,7 @@ const EventCard = ({
           {title}
         </h3>
 
-        <div className="space-y-1.5 mt-1 text-xs">
+        <div className="space-y-1.5 mt-1 text-xs flex-grow">
           <div className="flex items-center text-muted-foreground">
             <CalendarIcon className="mr-1.5 h-3 w-3 text-primary/70 flex-shrink-0" />
             <span className="truncate">{date}</span>

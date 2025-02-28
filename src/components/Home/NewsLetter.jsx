@@ -17,7 +17,7 @@ function NewsLetter() {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 max-w-lg mx-auto">
             <div className="flex-1 relative">
               <Mail
-                className="absolute left-3 top-2.5 sm:top-3 text-gray-400"
+                className="absolute left-3 top-2.5 sm:top-4 text-gray-400"
                 size={18}
               />
               <input

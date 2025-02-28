@@ -1,3 +1,4 @@
+/* eslint-disable react/react-in-jsx-scope */
 import { useState } from "react";
 import { cn } from "../../lib/utils";
 import { Button } from "./Button";
@@ -128,7 +129,7 @@ const SearchBar = ({ className }) => {
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="h-12 md:h-14 justify-between px-4 md:w-[180px] border-input bg-background/70 backdrop-blur-sm hover:border-primary/50 animate-fade-in opacity-0"
+              className="h-12 md:h-14 justify-between px-4 md:w-[180px] border-input bg-background/70 backdrop-blur-sm hover:border-primary/50 animate-fade-in"
               style={{ animationDelay: "400ms", animationFillMode: "forwards" }}
             >
               <div className="flex items-center">
@@ -140,7 +141,7 @@ const SearchBar = ({ className }) => {
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
+          <PopoverContent className="w-auto min-w-[250px] p-2 rounded-lg shadow-md border bg-background">
             <Calendar
               mode="single"
               selected={dateRange}

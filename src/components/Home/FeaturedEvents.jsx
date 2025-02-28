@@ -1,61 +1,12 @@
 import React from "react";
-import { cn } from "../lib/utils";
-import EventCard from "../components/ui/EventCard";
+import { cn } from "../../lib/utils";
+import EventCard from "../ui/EventCard";
 import { ChevronRight } from "lucide-react";
-import { Button } from "../components/ui/Button";
-
-const featuredEvents = [
-  {
-    id: "5",
-    title: "Annual Global AI Conference: The Future of Machine Learning",
-    date: "August 18-20, 2023",
-    time: "All Day Event",
-    location: "Tokyo International Forum, Japan",
-    category: "Technology",
-    attendees: 2800,
-    image:
-      "https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&w=1200&q=80",
-    featured: true,
-  },
-  {
-    id: "6",
-    title: "International Film Festival",
-    date: "September 5-12, 2023",
-    time: "Various Times",
-    location: "Berlin Cultural Center, Germany",
-    category: "Entertainment",
-    attendees: 4500,
-    image:
-      "https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=800&q=80",
-    featured: true,
-  },
-  {
-    id: "7",
-    title: "Sustainable Business Summit",
-    date: "October 10, 2023",
-    time: "9:00 AM - 6:00 PM",
-    location: "Green Convention Center, Stockholm",
-    category: "Business",
-    attendees: 1200,
-    image:
-      "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80",
-    featured: true,
-  },
-  {
-    id: "8",
-    title: "Digital Marketing Masterclass",
-    date: "November 15, 2023",
-    time: "10:00 AM - 4:00 PM",
-    location: "Tech Hub, San Francisco",
-    category: "Marketing",
-    attendees: 850,
-    image:
-      "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=800&q=80",
-    featured: true,
-  },
-];
+import { Button } from "../ui/Button";
+import { useEvents } from "../../Contexts/EventProvider";
 
 const FeaturedEvents = ({ className }) => {
+  const { FeaturedEvents } = useEvents();
   return (
     <section className={cn("py-16 px-4 relative overflow-hidden", className)}>
       {/* Background elements */}
@@ -84,7 +35,7 @@ const FeaturedEvents = ({ className }) => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {featuredEvents.map((event, index) => (
+          {FeaturedEvents.map((event, index) => (
             <EventCard
               key={event.id}
               {...event}
