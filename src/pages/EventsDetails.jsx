@@ -22,7 +22,7 @@ const EventDetails = () => {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [extendedDetails, setExtendedDetails] = useState(null);
-  const { allEvents, extendedEventDetails } = useEvents();
+  const { allEvents } = useEvents();
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
@@ -32,7 +32,7 @@ const EventDetails = () => {
       if (foundEvent) {
         setEvent(foundEvent);
         // Get extended details if available
-        const details = extendedEventDetails[id];
+        const details = foundEvent.extendedEventDetails;
         if (details) {
           setExtendedDetails(details);
         }

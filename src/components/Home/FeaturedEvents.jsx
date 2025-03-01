@@ -6,7 +6,8 @@ import { Button } from "../ui/Button";
 import { useEvents } from "../../Contexts/EventProvider";
 
 const FeaturedEvents = ({ className }) => {
-  const { FeaturedEvents } = useEvents();
+  const { allEvents } = useEvents();
+  const FeaturedEvents = allEvents?.filter((el) => el.featured);
   return (
     <section className={cn("py-16 px-4 relative overflow-hidden", className)}>
       {/* Background elements */}

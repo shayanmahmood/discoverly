@@ -4,7 +4,14 @@ import { useEvents } from "../../Contexts/EventProvider";
 import { cn } from "../../lib/utils";
 
 const CategorySection = ({ className }) => {
-  const { Categorys } = useEvents();
+  const { allEvents } = useEvents();
+  const Categorys = allEvents?.reduce((acc, event) => {
+    if (!acc.some((cat) => cat.id === event.categoryExtends.id)) {
+      acc.push(event.categoryExtends);
+    }
+    return acc;
+  }, []);
+
   return (
     <section className={cn("py-20 px-4", className)}>
       <div className="max-w-7xl mx-auto">

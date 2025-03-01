@@ -45,7 +45,7 @@ const Hero = ({ className }) => {
 
         <SearchBar />
 
-        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center max-w-4xl mx-auto">
+        <div className=" mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center max-w-4xl mx-auto">
           {[
             { value: "10K+", label: "Events" },
             { value: "500+", label: "Communities" },

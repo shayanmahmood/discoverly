@@ -5,7 +5,9 @@ import { useEvents } from "../../Contexts/EventProvider";
 
 /* eslint-disable react/react-in-jsx-scope */
 function UpCommingEvts() {
-  const {UpcomingEvents} = useEvents();
+  const { allEvents } = useEvents();
+  const UpcomingEvents = allEvents?.filter((el) => el.upcomming);
+
   return (
     <section className="py-10 sm:py-16 container mx-auto px-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-10">
