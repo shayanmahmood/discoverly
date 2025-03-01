@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { cn } from "../lib/utils";
 import { Button } from "./ui/Button";
 import { Calendar, Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -30,10 +31,10 @@ export const Navbar = () => {
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center">
-            <a href="/" className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2">
               <Calendar className="h-6 w-6 text-primary" />
               <span className="text-xl font-semibold">discoverly</span>
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}

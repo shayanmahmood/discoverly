@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import AppLayout from "./pages/Layout/AppLayout";
 import { EventProvider } from "./Contexts/EventProvider";
+import EventDetails from "./pages/EventsDetails";
 
 function App() {
   return (
@@ -18,7 +19,7 @@ function App() {
           }
         >
           <Route index element={<Home />} />
-          <Route path="me" element={<h1>yes</h1>} />
+          <Route path="/events/:id" element={<EventDetails />} />
         </Route>
       </Routes>
     </BrowserRouter>

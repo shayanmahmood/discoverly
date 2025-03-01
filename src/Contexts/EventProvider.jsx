@@ -15,7 +15,51 @@ import { createContext, useContext, useReducer } from "react";
 const EventsContext = createContext();
 
 const initialState = {
-  FeaturedEvents: [
+  allEvents: [
+    {
+      id: "1",
+      title: "World Tech Summit 2023",
+      date: "June 15, 2023",
+      time: "9:00 AM - 5:00 PM",
+      location: "San Francisco Convention Center",
+      category: "Technology",
+      attendees: 1250,
+      image:
+        "https://images.unsplash.com/photo-1507537297725-24a1c029d3ca?auto=format&fit=crop&w=800&q=80",
+    },
+    {
+      id: "2",
+      title: "Leadership & Innovation Conference",
+      date: "June 22, 2023",
+      time: "10:00 AM - 4:00 PM",
+      location: "New York Business Center",
+      category: "Business",
+      attendees: 850,
+      image:
+        "https://images.unsplash.com/photo-1560523159-4a9692d222ef?auto=format&fit=crop&w=800&q=80",
+    },
+    {
+      id: "3",
+      title: "Digital Art Exhibition",
+      date: "July 5, 2023",
+      time: "11:00 AM - 7:00 PM",
+      location: "Modern Art Gallery, London",
+      category: "Art",
+      attendees: 620,
+      image:
+        "https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=800&q=80",
+    },
+    {
+      id: "4",
+      title: "Wellness & Mindfulness Retreat",
+      date: "July 12, 2023",
+      time: "8:00 AM - 6:00 PM",
+      location: "Sunshine Wellness Center, Austin",
+      category: "Health",
+      attendees: 380,
+      image:
+        "https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=800&q=80",
+    },
     {
       id: "5",
       title: "Annual Global AI Conference: The Future of Machine Learning",
@@ -54,6 +98,185 @@ const initialState = {
     },
     {
       id: "8",
+      title: "Digital Marketing Masterclass",
+      date: "November 15, 2023",
+      time: "10:00 AM - 4:00 PM",
+      location: "Tech Hub, San Francisco",
+      category: "Marketing",
+      attendees: 850,
+      image:
+        "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=800&q=80",
+      featured: true,
+    },
+  ],
+  extendedEventDetails: {
+    1: {
+      description:
+        "Join us for the World Tech Summit 2023, where industry leaders and innovators gather to discuss the latest advancements in technology. This year's summit will focus on artificial intelligence, blockchain, quantum computing, and sustainable technology solutions.",
+      organizer: "Global Tech Association",
+      ticketPrice: "$299",
+      website: "https://worldtechsummit.example.com",
+      agenda: [
+        { time: "9:00 AM", activity: "Registration & Breakfast" },
+        {
+          time: "10:00 AM",
+          activity: "Opening Keynote: The Future of Technology",
+        },
+        { time: "11:30 AM", activity: "Panel Discussion: AI Ethics" },
+        { time: "1:00 PM", activity: "Lunch Break & Networking" },
+        { time: "2:30 PM", activity: "Workshops (Multiple Tracks)" },
+        { time: "4:30 PM", activity: "Closing Remarks" },
+      ],
+      sponsors: ["TechCorp", "InnovateLabs", "FutureWorks"],
+      additionalImages: [
+        "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=800&q=80",
+      ],
+    },
+    2: {
+      description:
+        "The Leadership & Innovation Conference brings together executives, entrepreneurs, and thought leaders to explore cutting-edge strategies for business growth and innovation. Learn from successful leaders and gain insights that will transform your organization.",
+      organizer: "Business Innovation Network",
+      ticketPrice: "$349",
+      website: "https://leadershipconference.example.com",
+      agenda: [
+        { time: "10:00 AM", activity: "Welcome & Introduction" },
+        { time: "10:30 AM", activity: "Keynote: Transformational Leadership" },
+        { time: "12:00 PM", activity: "Networking Lunch" },
+        { time: "1:30 PM", activity: "Workshop: Innovation Frameworks" },
+        { time: "3:00 PM", activity: "Panel: Future of Work" },
+        { time: "4:00 PM", activity: "Closing Session & Networking" },
+      ],
+      sponsors: ["LeaderCorp", "InnovateNow", "FutureLeaders"],
+    },
+    3: {
+      description:
+        "Experience the cutting edge of digital art at this immersive exhibition. Featuring works from renowned digital artists around the world, this exhibition showcases how technology is pushing the boundaries of artistic expression in the 21st century.",
+      organizer: "Modern Art Collective",
+      ticketPrice: "$25",
+      website: "https://digitalartexhibition.example.com",
+      additionalImages: [
+        "https://images.unsplash.com/photo-1533158326339-7f3cf2404354?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1598395927056-8d895e701c3b?auto=format&fit=crop&w=800&q=80",
+      ],
+    },
+    4: {
+      description:
+        "Take a day to focus on your mental and physical wellbeing at our Wellness & Mindfulness Retreat. Expert instructors will guide you through meditation sessions, yoga practices, and workshops on stress management and healthy living.",
+      organizer: "Wellness Collective",
+      ticketPrice: "$75",
+      agenda: [
+        { time: "8:00 AM", activity: "Morning Meditation" },
+        { time: "9:30 AM", activity: "Yoga Session" },
+        { time: "11:00 AM", activity: "Mindful Eating Workshop" },
+        { time: "12:30 PM", activity: "Plant-based Lunch" },
+        { time: "2:00 PM", activity: "Stress Management Workshop" },
+        { time: "4:00 PM", activity: "Sound Healing Session" },
+        { time: "5:30 PM", activity: "Closing Circle" },
+      ],
+    },
+    5: {
+      description:
+        "The Annual Global AI Conference is the premier event for AI researchers, industry leaders, and practitioners. This three-day conference will cover the latest breakthroughs in machine learning, applications of AI across industries, and the ethical implications of artificial intelligence.",
+      organizer: "International AI Society",
+      ticketPrice: "$499",
+      website: "https://globalaiconference.example.com",
+      agenda: [
+        { time: "Day 1", activity: "Research Presentations & Workshops" },
+        { time: "Day 2", activity: "Industry Applications & Case Studies" },
+        {
+          time: "Day 3",
+          activity: "Future Directions & Ethical Considerations",
+        },
+      ],
+      sponsors: ["AITech", "Neural Systems", "DeepMind Inc", "FutureTech"],
+    },
+    6: {
+      description:
+        "The International Film Festival showcases independent films from around the world. From documentaries to feature films, short films to experimental cinema, this week-long festival celebrates the diversity and creativity of global filmmaking.",
+      organizer: "International Film Association",
+      ticketPrice: "$15 per screening / $120 festival pass",
+      website: "https://internationalfilmfest.example.com",
+      additionalImages: [
+        "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=800&q=80",
+      ],
+    },
+    7: {
+      description:
+        "The Sustainable Business Summit brings together business leaders, policymakers, and sustainability experts to discuss strategies for building environmentally responsible and socially conscious businesses. Learn how leading companies are integrating sustainability into their core business models.",
+      organizer: "Green Business Coalition",
+      ticketPrice: "$275",
+      website: "https://sustainablebusiness.example.com",
+      agenda: [
+        { time: "9:00 AM", activity: "Registration" },
+        {
+          time: "9:30 AM",
+          activity: "Opening Keynote: Business in the Climate Crisis Era",
+        },
+        { time: "11:00 AM", activity: "Panel: Circular Economy Models" },
+        { time: "12:30 PM", activity: "Networking Lunch" },
+        { time: "2:00 PM", activity: "Workshop: Measuring & Reporting Impact" },
+        { time: "4:00 PM", activity: "Case Studies: Success Stories" },
+        { time: "5:30 PM", activity: "Closing Reception" },
+      ],
+      sponsors: ["EcoGroup", "SustainableFuture", "GreenTech"],
+    },
+    8: {
+      description:
+        "The Digital Marketing Masterclass is an intensive one-day workshop designed for marketing professionals looking to enhance their digital skills. Expert instructors will guide you through the latest strategies in SEO, content marketing, social media, and digital advertising.",
+      organizer: "Digital Marketing Institute",
+      ticketPrice: "$199",
+      website: "https://digitalmarketingclass.example.com",
+      agenda: [
+        { time: "10:00 AM", activity: "SEO & Content Strategy" },
+        { time: "11:30 AM", activity: "Social Media Marketing" },
+        { time: "1:00 PM", activity: "Networking Lunch" },
+        { time: "2:00 PM", activity: "Email Marketing & Automation" },
+        { time: "3:30 PM", activity: "Analytics & Performance Tracking" },
+      ],
+      sponsors: ["DigitalPro", "MarketingGenius", "AnalyticsMaster"],
+    },
+  },
+  FeaturedEvents: [
+    {
+      id: 5,
+      title: "Annual Global AI Conference: The Future of Machine Learning",
+      date: "August 18-20, 2023",
+      time: "All Day Event",
+      location: "Tokyo International Forum, Japan",
+      category: "Technology",
+      attendees: 2800,
+      image:
+        "https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&w=1200&q=80",
+      featured: true,
+    },
+    {
+      id: 6,
+      title: "International Film Festival",
+      date: "September 5-12, 2023",
+      time: "Various Times",
+      location: "Berlin Cultural Center, Germany",
+      category: "Entertainment",
+      attendees: 4500,
+      image:
+        "https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=800&q=80",
+      featured: true,
+    },
+    {
+      id: 7,
+      title: "Sustainable Business Summit",
+      date: "October 10, 2023",
+      time: "9:00 AM - 6:00 PM",
+      location: "Green Convention Center, Stockholm",
+      category: "Business",
+      attendees: 1200,
+      image:
+        "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80",
+      featured: true,
+    },
+    {
+      id: 8,
       title: "Digital Marketing Masterclass",
       date: "November 15, 2023",
       time: "10:00 AM - 4:00 PM",
@@ -243,7 +466,15 @@ function reducer(state, action) {}
 
 const EventProvider = ({ children }) => {
   const [
-    { FeaturedEvents, UpcomingEvents, Testmonials, SubTopics, Categorys },
+    {
+      FeaturedEvents,
+      UpcomingEvents,
+      Testmonials,
+      SubTopics,
+      Categorys,
+      allEvents,
+      extendedEventDetails,
+    },
     dispatch,
   ] = useReducer(reducer, initialState);
 
@@ -255,6 +486,8 @@ const EventProvider = ({ children }) => {
         Testmonials,
         SubTopics,
         Categorys,
+        allEvents,
+        extendedEventDetails,
       }}
     >
       {children}
