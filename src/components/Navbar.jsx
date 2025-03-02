@@ -26,7 +26,7 @@ export const Navbar = () => {
           "fixed top-0 left-0 right-0 z-50 py-4 px-6 md:px-8 transition-all duration-300",
           isScrolled
             ? "bg-background/80 backdrop-blur-lg border-b border-border shadow-sm"
-            : "bg-transparent"
+            : "bg-transparent  !text-primary"
         )}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -39,27 +39,37 @@ export const Navbar = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
+            <Link to="/events">
+              <Button
+                variant="ghost"
+                className={`text-foreground/80 hover:text-foreground ${
+                  !isScrolled && " !text-white"
+                }`}
+              >
+                Browse Events
+              </Button>
+            </Link>
             <Button
               variant="ghost"
-              className="text-foreground/80 hover:text-foreground"
-            >
-              Browse Events
-            </Button>
-            <Button
-              variant="ghost"
-              className="text-foreground/80 hover:text-foreground"
+              className={`text-foreground/80 hover:text-foreground ${
+                !isScrolled && " !text-white"
+              }`}
             >
               Create Event
             </Button>
             <Button
               variant="ghost"
-              className="text-foreground/80 hover:text-foreground"
+              className={`text-foreground/80 hover:text-foreground ${
+                !isScrolled && " !text-white"
+              }`}
             >
               Blog
             </Button>
             <Button
               variant="ghost"
-              className="text-foreground/80 hover:text-foreground"
+              className={`text-foreground/80 hover:text-foreground ${
+                !isScrolled && " !text-white"
+              }`}
             >
               About
             </Button>

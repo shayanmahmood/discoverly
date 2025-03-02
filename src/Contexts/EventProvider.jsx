@@ -33,7 +33,7 @@ const initialState = {
       attendees: 1250,
       image:
         "https://images.unsplash.com/photo-1507537297725-24a1c029d3ca?auto=format&fit=crop&w=800&q=80",
-      featured: true,
+      featured: false,
       upcomming: true,
       price: "$299",
       extendedEventDetails: {
@@ -398,7 +398,7 @@ const initialState = {
         sponsors: ["EcoFriendly", "Local Green", "Community Helpers"],
       },
       image:
-        "https://images.unsplash.com/photo-1536867564208-8b13c913faae?auto=format&fit=crop&w=800&q=80",
+        "https://plus.unsplash.com/premium_photo-1671350973810-d60e59970416?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       id: "11",
@@ -511,64 +511,6 @@ const initialState = {
       category: "business",
     },
     { id: "vr", name: "Virtual Reality", count: 47, category: "technology" },
-  ],
-  Categorys: [
-    {
-      id: "technology",
-      name: "Technology",
-      description: "Tech conferences and workshops",
-      icon: Code,
-      color: "from-[#6366f1]/20 to-[#8b5cf6]/20",
-    },
-    {
-      id: "business",
-      name: "Business",
-      description: "Networking and professional events",
-      icon: Briefcase,
-      color: "from-[#0ea5e9]/20 to-[#6366f1]/20",
-    },
-    {
-      id: "art",
-      name: "Art & Design",
-      description: "Exhibitions and creative workshops",
-      icon: Palette,
-      color: "from-[#f43f5e]/20 to-[#ec4899]/20",
-    },
-    {
-      id: "health",
-      name: "Health & Wellness",
-      description: "Fitness classes and mental wellness",
-      icon: HeartPulse,
-      color: "from-[#10b981]/20 to-[#14b8a6]/20",
-    },
-    {
-      id: "entertainment",
-      name: "Entertainment",
-      description: "Concerts, shows, and performances",
-      icon: Film,
-      color: "from-[#f59e0b]/20 to-[#f97316]/20",
-    },
-    {
-      id: "education",
-      name: "Education",
-      description: "Courses, lectures, and learning events",
-      icon: Lightbulb,
-      color: "from-[#3b82f6]/20 to-[#6366f1]/20",
-    },
-    {
-      id: "community",
-      name: "Community",
-      description: "Meetups and social gatherings",
-      icon: Users,
-      color: "from-[#ec4899]/20 to-[#8b5cf6]/20",
-    },
-    {
-      id: "music",
-      name: "Music",
-      description: "Live shows and festivals",
-      icon: Mic2,
-      color: "from-[#8b5cf6]/20 to-[#ec4899]/20",
-    },
   ],
 };
 

@@ -1,5 +1,6 @@
 /* eslint-disable react/react-in-jsx-scope */
 /* eslint-disable react/prop-types */
+import { Link } from "react-router-dom";
 import { useEvents } from "../../Contexts/EventProvider";
 import { cn } from "../../lib/utils";
 
@@ -50,23 +51,25 @@ const CategorySection = ({ className }) => {
                 </p>
 
                 <div className="mt-auto">
-                  <button className="text-sm font-medium text-primary flex items-center transition-all group-hover:translate-x-1">
-                    Browse events
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 ml-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </button>
+                  <Link to={`/events?cat=${category.name}`}>
+                    <button className="text-sm font-medium text-primary flex items-center transition-all group-hover:translate-x-1">
+                      Browse events
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 ml-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+                  </Link>
                 </div>
               </div>
             </div>

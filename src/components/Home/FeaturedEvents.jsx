@@ -4,6 +4,7 @@ import EventCard from "../ui/EventCard";
 import { ChevronRight } from "lucide-react";
 import { Button } from "../ui/Button";
 import { useEvents } from "../../Contexts/EventProvider";
+import { Link } from "react-router-dom";
 
 const FeaturedEvents = ({ className }) => {
   const { allEvents } = useEvents();
@@ -29,15 +30,18 @@ const FeaturedEvents = ({ className }) => {
             </p>
           </div>
 
-          <Button variant="outline" size="sm" className="group">
-            View all events{" "}
-            <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-          </Button>
+          <Link to="/events">
+            <Button variant="outline" size="sm" className="group">
+              View all events{" "}
+              <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {FeaturedEvents.map((event, index) => (
             <EventCard
+              link={`/event/${event.id}`}
               key={event.id}
               {...event}
               className="animate-fade-in opacity-0"

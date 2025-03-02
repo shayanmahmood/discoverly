@@ -5,6 +5,7 @@ import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { CalendarIcon, Clock, MapPin, Users, ArrowRight } from "lucide-react";
 import { AspectRatio } from "../ui/AspectRation";
+import { Link } from "react-router-dom";
 
 const EventCard = ({
   id,
@@ -18,6 +19,7 @@ const EventCard = ({
   featured = false,
   className,
   style,
+  link,
 }) => {
   return (
     <div
@@ -86,14 +88,16 @@ const EventCard = ({
         </div>
 
         <div className="mt-auto pt-3">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full text-xs font-medium h-8 group/btn border-primary/20 hover:bg-primary hover:text-white transition-colors"
-          >
-            Register
-            <ArrowRight className="ml-1 h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
-          </Button>
+          <Link to={`${link}`}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-xs font-medium h-8 group/btn border-primary/20 hover:bg-primary hover:text-white transition-colors"
+            >
+              Register
+              <ArrowRight className="ml-1 h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

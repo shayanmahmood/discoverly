@@ -11,6 +11,7 @@ import {
   Share2,
   BookmarkPlus,
   TicketIcon,
+  TicketCheckIcon,
 } from "lucide-react";
 import { AspectRatio } from "../components/ui/AspectRation";
 import { Input } from "../components/ui/Input";
@@ -19,10 +20,11 @@ import { useEvents } from "../Contexts/EventProvider";
 import EventNotFound from "./EventNotFound";
 
 const EventDetails = () => {
+  const { allEvents } = useEvents();
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [extendedDetails, setExtendedDetails] = useState(null);
-  const { allEvents } = useEvents();
+  const [register, setRegister] = useState(false);
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
@@ -38,7 +40,7 @@ const EventDetails = () => {
         }
       }
     }
-  }, [id]);
+  }, [id, allEvents]);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -58,6 +60,7 @@ const EventDetails = () => {
   };
 
   const handleRegister = () => {
+    setRegister(true);
     toast({
       title: "Registration successful",
       description: `You are now registered for ${event?.title}`,
@@ -91,6 +94,7 @@ const EventDetails = () => {
                   <ArrowLeft className="h-4 w-4 mr-1" />
                   <span>Back to events</span>
                 </Link>
+                <br />
                 <Badge className="mb-4">{event.category}</Badge>
                 <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
                   {event.title}
@@ -116,9 +120,23 @@ const EventDetails = () => {
                 </div>
 
                 <div className="flex space-x-3">
-                  <Button onClick={handleRegister} size="lg" className="gap-2">
-                    <TicketIcon className="h-5 w-5" />
-                    Register Now
+                  <Button
+                    onClick={handleRegister}
+                    size="lg"
+                    className="gap-2"
+                    disabled={register}
+                  >
+                    {register ? (
+                      <>
+                        <TicketCheckIcon className="h-5 w-5" />
+                        Registered
+                      </>
+                    ) : (
+                      <>
+                        <TicketIcon className="h-5 w-5" />
+                        Register Now
+                      </>
+                    )}
                   </Button>
                   <Button
                     variant="secondary"
@@ -250,7 +268,7 @@ const EventDetails = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Price</p>
                     <p className="text-xl font-bold">
-                      {extendedDetails?.ticketPrice || "Free"}
+                      {event?.price || "Free"}
                     </p>
                   </div>
                   <Badge

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // import { useState } from "react";
 // import { cn } from "../../lib/utils";
 // import { Button } from "./Button";
@@ -193,7 +194,7 @@
 // export default SearchBar;
 
 /* eslint-disable react/react-in-jsx-scope */
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { cn } from "../../lib/utils";
 import { Button } from "./Button";
 import { Input } from "../ui/Input";
@@ -208,30 +209,47 @@ import {
 } from "lucide-react";
 import { Calendar } from "./Calendar";
 import { format } from "date-fns";
-
-const dummyEvents = [
-  { name: "Tech Conference 2025", link: "/events/tech-conference" },
-  { name: "Business Summit", link: "/events/business-summit" },
-  { name: "Art Expo", link: "/events/art-expo" },
-  { name: "Health & Wellness Fair", link: "/events/health-fair" },
-  { name: "Music Festival", link: "/events/music-festival" },
-  { name: "Education Workshop", link: "/events/education-workshop" },
-  { name: "Science Innovation Forum", link: "/events/science-forum" },
-  { name: "Food Carnival", link: "/events/food-carnival" },
-  { name: "Sports Championship", link: "/events/sports-championship" },
-];
+import { useEvents } from "../../Contexts/EventProvider";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 const SearchBar = ({ className }) => {
+  const { allEvents } = useEvents();
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState(undefined);
   const [category, setCategory] = useState("All Categories");
   const [location, setLocation] = useState("Any Location");
+  const navigate = useNavigate();
+
+  const data = allEvents.map((cat) => ({
+    name: cat.title,
+    link: `/event/${cat.id}`,
+  }));
 
   // Filter suggestions based on input
-  const filteredSuggestions = dummyEvents.filter((event) =>
+  const filteredSuggestions = data?.filter((event) =>
     event.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleClick = useCallback(() => {
+    if (filteredSuggestions.length >= 1) {
+      const link = `${filteredSuggestions[0].link}`;
+      navigate(`${link}`);
+    }
+  });
+
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (event.key === "Enter") {
+        handleClick();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [filteredSuggestions, handleClick]);
   return (
     <div
       className={cn(
@@ -258,13 +276,13 @@ const SearchBar = ({ className }) => {
         {searchTerm && filteredSuggestions.length > 0 && (
           <div className="absolute !z-[5000] mt-1 w-full bg-background/70 backdrop-blur-lg border rounded-lg shadow-lg max-h-40 overflow-y-auto">
             {filteredSuggestions.map((event, index) => (
-              <a
+              <Link
                 key={index}
-                href={event.link}
+                to={event.link}
                 className="block w-full text-left p-2 hover:bg-muted-foreground/20 text-primary font-medium"
               >
                 {event.name}
-              </a>
+              </Link>
             ))}
           </div>
         )}
@@ -390,6 +408,7 @@ const SearchBar = ({ className }) => {
 
       {/* Find Events Button */}
       <Button
+        onClick={handleClick}
         className="h-12 md:h-14 px-8 rounded-lg animate-fade-in opacity-0"
         style={{ animationDelay: "500ms", animationFillMode: "forwards" }}
       >

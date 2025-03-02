@@ -26,7 +26,7 @@ function UpCommingEvts() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {UpcomingEvents?.map((event, index) => (
-          <EventCard key={index} {...event} />
+          <EventCard key={index} link={`/event/${event.id}`} {...event} />
         ))}
       </div>
     </section>

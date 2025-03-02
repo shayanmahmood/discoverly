@@ -5,6 +5,8 @@ import Home from "./pages/Home";
 import AppLayout from "./pages/Layout/AppLayout";
 import { EventProvider } from "./Contexts/EventProvider";
 import EventDetails from "./pages/EventsDetails";
+import AllEvents from "./pages/AllEvents";
+import ContactUs from "./pages/ContactUs";
 
 function App() {
   return (
@@ -19,7 +21,9 @@ function App() {
           }
         >
           <Route index element={<Home />} />
-          <Route path="/events/:id" element={<EventDetails />} />
+          <Route path="/event/:id" element={<EventDetails />} />
+          <Route path="/events" element={<AllEvents />} />
+          <Route path="/Contact" element={<ContactUs />} />
         </Route>
       </Routes>
     </BrowserRouter>
