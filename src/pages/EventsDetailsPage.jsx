@@ -9,22 +9,46 @@ import {
   Users,
   ArrowLeft,
   Share2,
-  BookmarkPlus,
   TicketIcon,
+  Mail,
+  User,
   TicketCheckIcon,
+  Check,
+  ExternalLink,
+  CalendarClockIcon,
 } from "lucide-react";
 import { AspectRatio } from "../components/ui/AspectRation";
-import { Input } from "../components/ui/Input";
 import { toast } from "../components/ui/Use-Toast";
-import { useEvents } from "../Contexts/EventProvider";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "../components/ui/Dialog";
+import { Textarea } from "../components/ui/TextArea";
+import { Input } from "../components/ui/Input";
 import EventNotFound from "./EventNotFound";
+import { useEvents } from "../Contexts/EventProvider";
+
+
 
 const EventDetails = () => {
   const { allEvents } = useEvents();
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [extendedDetails, setExtendedDetails] = useState(null);
-  const [register, setRegister] = useState(false);
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
+  const [isRegister, setIsRegister] = useState(false);
+  const [isCopy, setIsCopy] = useState(false);
+  const [saveCalendar, setsaveCalendar] = useState(false);
+  const [userInfo, setUserInfo] = useState({
+    name: "",
+    email: "",
+  });
+
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
@@ -43,6 +67,7 @@ const EventDetails = () => {
   }, [id, allEvents]);
 
   const handleShare = () => {
+    setIsCopy(true);
     navigator.clipboard.writeText(window.location.href);
     toast({
       title: "Link copied",
@@ -51,19 +76,69 @@ const EventDetails = () => {
     });
   };
 
-  const handleBookmark = () => {
+  const handleRegister = () => {
+    setIsRegister(true);
     toast({
-      title: "Event saved",
-      description: "This event has been added to your bookmarks",
+      title: "Registration successful",
+      description: `You are now registered for ${event?.title}`,
       duration: 3000,
     });
   };
 
-  const handleRegister = () => {
-    setRegister(true);
+  const handleGetInfo = () => {
+    setShowInfoDialog(true);
+  };
+
+  const handleInfoSubmit = (e) => {
+    e.preventDefault();
+
+    if (!userInfo.name.trim() || !userInfo.email.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please provide both your name and email",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+
+    setShowInfoDialog(false);
     toast({
-      title: "Registration successful",
-      description: `You are now registered for ${event?.title}`,
+      title: "Request sent",
+      description: `Event information will be sent to ${userInfo.email}`,
+      duration: 3000,
+    });
+
+    // Reset form
+    setUserInfo({
+      name: "",
+      email: "",
+    });
+  };
+
+  const handleSaveToCalendar = () => {
+    if (!event) return;
+
+    // Format event details for Google Calendar
+    setsaveCalendar(true);
+    const title = encodeURIComponent(event.title);
+    const location = encodeURIComponent(event.location);
+    const description = encodeURIComponent(
+      extendedDetails?.description || event.title
+    );
+
+    // For simplicity, use the date string as-is (in real app, would parse to proper format)
+    const dates = encodeURIComponent(event.date);
+
+    // Create Google Calendar URL
+    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&location=${location}&details=${description}&dates=${dates}`;
+
+    // Open in new tab
+    window.open(googleCalendarUrl, "_blank");
+
+    toast({
+      title: "Calendar event",
+      description: "Google Calendar opened with event details",
       duration: 3000,
     });
   };
@@ -119,14 +194,14 @@ const EventDetails = () => {
                   </div>
                 </div>
 
-                <div className="flex space-x-3">
+                <div className="flex flex-wrap space-x-3 mb-4">
                   <Button
                     onClick={handleRegister}
                     size="lg"
                     className="gap-2"
-                    disabled={register}
+                    disabled={isRegister}
                   >
-                    {register ? (
+                    {isRegister ? (
                       <>
                         <TicketCheckIcon className="h-5 w-5" />
                         Registered
@@ -141,11 +216,20 @@ const EventDetails = () => {
                   <Button
                     variant="secondary"
                     size="lg"
-                    onClick={handleBookmark}
+                    onClick={handleSaveToCalendar}
                     className="gap-2"
                   >
-                    <BookmarkPlus className="h-5 w-5" />
-                    Save
+                    {saveCalendar ? (
+                      <>
+                        <CalendarClockIcon className="h-5 w-5" />
+                        Save again Google Calendar
+                      </>
+                    ) : (
+                      <>
+                        <ExternalLink className="h-5 w-5" />
+                        Save to Google Calendar
+                      </>
+                    )}
                   </Button>
                   <Button
                     variant="outline"
@@ -153,7 +237,11 @@ const EventDetails = () => {
                     onClick={handleShare}
                     className="bg-background/20 backdrop-blur-sm hover:bg-background/30 border-white/20"
                   >
-                    <Share2 className="h-5 w-5 text-white" />
+                    {isCopy ? (
+                      <Check className="h-5 w-5 text-white" />
+                    ) : (
+                      <Share2 className="h-5 w-5 text-white" />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -240,9 +328,18 @@ const EventDetails = () => {
               {/* Organizer Info */}
               <div className="bg-card rounded-xl border p-6">
                 <h3 className="text-lg font-semibold mb-3">Organizer</h3>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground mb-4">
                   {extendedDetails?.organizer || "Unknown organizer"}
                 </p>
+
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={handleGetInfo}
+                >
+                  <Mail className="h-4 w-4" />
+                  Get Event Info from Organizer
+                </Button>
 
                 {extendedDetails?.website && (
                   <div className="mt-4">
@@ -268,7 +365,7 @@ const EventDetails = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Price</p>
                     <p className="text-xl font-bold">
-                      {event?.price || "Free"}
+                      {extendedDetails?.ticketPrice || "Free"}
                     </p>
                   </div>
                   <Badge
@@ -313,6 +410,89 @@ const EventDetails = () => {
           </div>
         </div>
       </main>
+
+      {/* Event Info Dialog */}
+      <Dialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request Event Information</DialogTitle>
+            <DialogDescription>
+              Enter your details to receive more information about this event
+              from the organizer.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleInfoSubmit}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label
+                  htmlFor="name"
+                  className="text-sm font-medium leading-none"
+                >
+                  Your Name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    placeholder="Enter your full name"
+                    className="pl-10"
+                    value={userInfo.name}
+                    onChange={(e) =>
+                      setUserInfo({ ...userInfo, name: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="email"
+                  className="text-sm font-medium leading-none"
+                >
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email address"
+                    className="pl-10"
+                    value={userInfo.email}
+                    onChange={(e) =>
+                      setUserInfo({ ...userInfo, email: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="message"
+                  className="text-sm font-medium leading-none"
+                >
+                  Message (Optional)
+                </label>
+                <Textarea
+                  id="message"
+                  placeholder="Any specific questions for the organizer?"
+                  className="min-h-[100px]"
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline" type="button">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button type="submit">Submit Request</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

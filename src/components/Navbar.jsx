@@ -3,11 +3,14 @@ import { useState, useEffect } from "react";
 import { cn } from "../lib/utils";
 import { Button } from "./ui/Button";
 import { Calendar, Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+  const isDetailPage = location.pathname.includes("/event/");
+  console.log(isDetailPage);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,7 +29,7 @@ export const Navbar = () => {
           "fixed top-0 left-0 right-0 z-50 py-4 px-6 md:px-8 transition-all duration-300",
           isScrolled
             ? "bg-background/80 backdrop-blur-lg border-b border-border shadow-sm"
-            : "bg-transparent  !text-primary"
+            : `bg-transparent  ${isDetailPage && "!text-primary"}`
         )}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -43,7 +46,8 @@ export const Navbar = () => {
               <Button
                 variant="ghost"
                 className={`text-foreground/80 hover:text-foreground ${
-                  !isScrolled && " !text-white"
+                  !isScrolled &&
+                  ` ${isDetailPage && "!text-white hover:!text-blue-400"}`
                 }`}
               >
                 Browse Events
@@ -52,7 +56,8 @@ export const Navbar = () => {
             <Button
               variant="ghost"
               className={`text-foreground/80 hover:text-foreground ${
-                !isScrolled && " !text-white"
+                !isScrolled &&
+                ` ${isDetailPage && "!text-white hover:!text-blue-400"}`
               }`}
             >
               Create Event
@@ -60,29 +65,37 @@ export const Navbar = () => {
             <Button
               variant="ghost"
               className={`text-foreground/80 hover:text-foreground ${
-                !isScrolled && " !text-white"
+                !isScrolled &&
+                ` ${isDetailPage && "!text-white hover:!text-blue-400"}`
               }`}
             >
               Blog
             </Button>
-            <Button
-              variant="ghost"
-              className={`text-foreground/80 hover:text-foreground ${
-                !isScrolled && " !text-white"
-              }`}
-            >
-              About
-            </Button>
+            <Link to="/Contact">
+              <Button
+                variant="ghost"
+                className={`text-foreground/80 hover:text-foreground ${
+                  !isScrolled &&
+                  ` ${isDetailPage && "!text-white hover:!text-blue-400"}`
+                }`}
+              >
+                Contact Us
+              </Button>
+            </Link>
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Button
-              variant="outline"
-              className="border-primary/20 hover:border-primary/40"
-            >
-              Sign In
-            </Button>
-            <Button>Get Started</Button>
+            <Link to="/signup">
+              <Button
+                variant="outline"
+                className="border-primary/20 hover:border-primary/40"
+              >
+                Sign In
+              </Button>
+            </Link>
+            <Link to="/login">
+              <Button>Get Started</Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
