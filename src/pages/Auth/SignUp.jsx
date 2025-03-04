@@ -1,37 +1,29 @@
-
 import React, { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
-import { Lock } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { User, Lock, Mail } from "lucide-react";
 import { toast } from "sonner";
+import useAuth from "../../hooks/useAuthUser";
 
-const ResetPassword = () => {
+const Signup = () => {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  
-  // Get token from URL if provided
-  const token = searchParams.get("token") || "mock-token";
+  const { handleRegister } = useAuth();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
       toast.error("Passwords do not match!");
       return;
     }
-    
     setIsLoading(true);
-
-    // Simulate password reset - would connect to auth system in real app
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Password reset successfully!");
-      navigate("/login");
-    }, 1500);
+    handleRegister(email, password, fullName);
+    setIsLoading(false);
   };
 
   return (
@@ -39,17 +31,49 @@ const ResetPassword = () => {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Reset your password
+            Create a new account
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Please enter your new password below.
+            Or{" "}
+            <Link
+              to="/login"
+              className="font-medium text-primary hover:text-primary/80"
+            >
+              sign in to your existing account
+            </Link>
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <input type="hidden" name="token" value={token} />
-          
           <div className="space-y-4 rounded-md shadow-sm">
+            <div className="relative">
+              <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Input
+                id="fullName"
+                name="fullName"
+                type="text"
+                autoComplete="name"
+                required
+                className="pl-10"
+                placeholder="Full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </div>
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="pl-10"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
               <Input
@@ -59,7 +83,7 @@ const ResetPassword = () => {
                 autoComplete="new-password"
                 required
                 className="pl-10"
-                placeholder="New password"
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -73,7 +97,7 @@ const ResetPassword = () => {
                 autoComplete="new-password"
                 required
                 className="pl-10"
-                placeholder="Confirm new password"
+                placeholder="Confirm password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
@@ -86,22 +110,13 @@ const ResetPassword = () => {
               className="flex w-full justify-center"
               disabled={isLoading}
             >
-              {isLoading ? "Resetting..." : "Reset password"}
+              {isLoading ? "Creating account..." : "Create account"}
             </Button>
           </div>
         </form>
-
-        <div className="text-center">
-          <Link
-            to="/login"
-            className="text-sm font-medium text-primary hover:text-primary/80"
-          >
-            Back to login
-          </Link>
-        </div>
       </div>
     </div>
   );
 };
 
-export default ResetPassword;
+export default Signup;

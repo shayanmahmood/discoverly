@@ -1,27 +1,25 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
+
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+
+import { Link } from "react-router-dom";
 import { Lock, Mail } from "lucide-react";
-import { toast } from "sonner";
+
+import useAuth from "../../hooks/useAuthUser";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const { handleLogin } = useAuth();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsLoading(true);
+    if (!email && !password) return;
 
-    // Simulate login - would connect to auth system in real app
-    setTimeout(() => {
-      setIsLoading(false);
-      // Successful login simulation
-      toast.success("Login successful! Welcome back.");
-      navigate("/");
-    }, 1500);
+    handleLogin(email, password);
   };
 
   return (

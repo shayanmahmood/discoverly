@@ -1,17 +1,12 @@
 import React, { useState, useEffect } from "react";
-import EventCard from "../components/EventCard";
-import { Input } from "../components/ui/Input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/ui/Select";
-import { Button } from "../components/ui/Button";
+
+import { Button } from "../../components/ui/Button";
 import { Search, Filter } from "lucide-react";
-import { useEvents } from "../Contexts/EventProvider";
 import { useSearchParams } from "react-router-dom";
+import EventCard from "../../components/EventCard";
+import { Input } from "../../components/ui/Input";
+import { useEvents } from "../../Contexts/EventProvider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
 
 const AllEvents = () => {
   const [searchParams] = useSearchParams();

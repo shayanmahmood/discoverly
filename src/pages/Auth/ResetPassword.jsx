@@ -1,34 +1,46 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
-import { User, Lock, Mail } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Lock } from "lucide-react";
 import { toast } from "sonner";
+import useAuth from "../../hooks/useAuthUser";
 
-const Signup = () => {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { handleResetPassword } = useAuth();
+  const oobCode = searchParams.get("oobCode"); // Get reset code from URL
+
+  // Get token from URL if provided
+  const token = searchParams.get("token") || "mock-token";
+
+  useEffect(() => {
+    if (!oobCode) {
+      alert("Invalid or expired reset link.");
+    }
+  }, [oobCode]);
 
   const handleSubmit = (e) => {
+    // handleResetPassword(token, newPassword);
     e.preventDefault();
 
     if (password !== confirmPassword) {
       toast.error("Passwords do not match!");
       return;
     }
+    if (confirmPassword.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (!oobCode) return;
+    handleResetPassword(oobCode, confirmPassword);
 
     setIsLoading(true);
-
-    // Simulate signup - would connect to auth system in real app
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Account created successfully!");
-      navigate("/login");
-    }, 1500);
+    setIsLoading(false);
   };
 
   return (
@@ -36,49 +48,17 @@ const Signup = () => {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Create a new account
+            Reset your password
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Or{" "}
-            <Link
-              to="/login"
-              className="font-medium text-primary hover:text-primary/80"
-            >
-              sign in to your existing account
-            </Link>
+            Please enter your new password below.
           </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <input type="hidden" name="token" value={token} />
+
           <div className="space-y-4 rounded-md shadow-sm">
-            <div className="relative">
-              <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-              <Input
-                id="fullName"
-                name="fullName"
-                type="text"
-                autoComplete="name"
-                required
-                className="pl-10"
-                placeholder="Full name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-              />
-            </div>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="pl-10"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
               <Input
@@ -88,7 +68,7 @@ const Signup = () => {
                 autoComplete="new-password"
                 required
                 className="pl-10"
-                placeholder="Password"
+                placeholder="New password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -102,7 +82,7 @@ const Signup = () => {
                 autoComplete="new-password"
                 required
                 className="pl-10"
-                placeholder="Confirm password"
+                placeholder="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
@@ -115,13 +95,22 @@ const Signup = () => {
               className="flex w-full justify-center"
               disabled={isLoading}
             >
-              {isLoading ? "Creating account..." : "Create account"}
+              {isLoading ? "Resetting..." : "Reset password"}
             </Button>
           </div>
         </form>
+
+        <div className="text-center">
+          <Link
+            to="/login"
+            className="text-sm font-medium text-primary hover:text-primary/80"
+          >
+            Back to login
+          </Link>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Signup;
+export default ResetPassword;

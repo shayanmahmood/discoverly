@@ -1,5 +1,6 @@
+/* eslint-disable react/no-unescaped-entities */
 import { Link } from "react-router-dom";
-import { Button } from "../components/ui/Button";
+import { Button } from "../../components/ui/Button";
 
 /* eslint-disable react/react-in-jsx-scope */
 function EventNotFound() {

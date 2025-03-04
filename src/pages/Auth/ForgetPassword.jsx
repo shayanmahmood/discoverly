@@ -1,25 +1,23 @@
+/* eslint-disable react/no-unescaped-entities */
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
 import { Mail } from "lucide-react";
-import { toast } from "sonner";
+import useAuth from "../../hooks/useAuthUser";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const { handleForgotPassword } = useAuth();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsLoading(true);
-
-    // Simulate sending reset email - would connect to auth system in real app
-    setTimeout(() => {
-      setIsLoading(false);
-      setSubmitted(true);
-      toast.success("Password reset link sent to your email!");
-    }, 1500);
+    handleForgotPassword(email);
+    setIsLoading(false);
+    setSubmitted(true);
   };
 
   return (

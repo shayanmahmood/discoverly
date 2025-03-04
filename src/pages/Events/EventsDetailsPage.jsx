@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Button } from "../components/ui/Button";
-import { Badge } from "../components/ui/Badge";
+import { Button } from "../../components/ui/Button";
+import { Badge } from "../../components/ui/Badge";
 import {
   Calendar,
   Clock,
@@ -17,8 +17,8 @@ import {
   ExternalLink,
   CalendarClockIcon,
 } from "lucide-react";
-import { AspectRatio } from "../components/ui/AspectRation";
-import { toast } from "../components/ui/Use-Toast";
+import { AspectRatio } from "../../components/ui/AspectRation";
+import { toast } from "../../components/ui/Use-Toast";
 import {
   Dialog,
   DialogContent,
@@ -27,11 +27,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogClose,
-} from "../components/ui/Dialog";
-import { Textarea } from "../components/ui/TextArea";
-import { Input } from "../components/ui/Input";
+} from "../../components/ui/Dialog";
+import { Textarea } from "../../components/ui/TextArea";
+import { Input } from "../../components/ui/Input";
+import { useEvents } from "../../Contexts/EventProvider";
 import EventNotFound from "./EventNotFound";
-import { useEvents } from "../Contexts/EventProvider";
 
 
 
@@ -144,7 +144,7 @@ const EventDetails = () => {
   };
 
   if (!event) {
-    return <EventNotFound />;
+    return <EventNotFound />
   }
 
   return (
