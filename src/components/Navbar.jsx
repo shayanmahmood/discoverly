@@ -2,15 +2,44 @@
 import { useState, useEffect } from "react";
 import { cn } from "../lib/utils";
 import { Button } from "./ui/Button";
-import { Calendar, Menu, X } from "lucide-react";
+import {
+  Calendar,
+  LogOut,
+  Menu,
+  MessageSquare,
+  Settings,
+  User,
+  X,
+} from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import useAuthUser from "../hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/DropDown-Menu";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/Avatar";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, loading } = useAuthUser();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const isDetailPage = location.pathname.includes("/event/");
-  console.log(isDetailPage);
+  const userData = user
+    ? {
+        name: "Jane Smith",
+        email: "jane@example.com",
+        avatarUrl: "", // If you have an avatar URL
+      }
+    : null;
+
+  // This is just for demo purposes - in a real app you would use an auth system
+  const toggleLogin = () => setIsLoggedIn(!isLoggedIn);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -84,19 +113,156 @@ export const Navbar = () => {
             </Link>
           </nav>
 
-          <div className="hidden md:flex items-center space-x-4">
-            <Link to="/signup">
-              <Button
-                variant="outline"
-                className="border-primary/20 hover:border-primary/40"
-              >
-                Sign In
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button>Get Started</Button>
-            </Link>
-          </div>
+          {!loading && user ? (
+            <div className="hidden md:flex items-center space-x-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-8 w-8 rounded-full border border-primary/10 hover:bg-primary/10"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.photoURL} alt={user.displayName} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {user.displayName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {user.displayName}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link
+                      to="/dashboard"
+                      className="flex w-full cursor-pointer items-center"
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      to="/dashboard?tab=messages"
+                      className="flex w-full cursor-pointer items-center"
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      <span>Messages</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      to="/dashboard?tab=settings"
+                      className="flex w-full cursor-pointer items-center"
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={toggleLogin}
+                    className="flex w-full cursor-pointer items-center text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center space-x-4">
+              <Link to="/signup">
+                <Button
+                  variant="outline"
+                  className="border-primary/20 hover:border-primary/40"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/login">
+                <Button>Get Started</Button>
+              </Link>
+            </div>
+          )}
+
+          {/* <div className="hidden md:flex items-center space-x-4">
+            {isLoggedIn ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="relative h-8 w-8 rounded-full border border-primary/10 hover:bg-primary/10"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.avatarUrl} alt={user.name} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {user.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="flex w-full cursor-pointer items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard?tab=messages" className="flex w-full cursor-pointer items-center">
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      <span>Messages</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard?tab=settings" className="flex w-full cursor-pointer items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={toggleLogin} 
+                    className="flex w-full cursor-pointer items-center text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button variant="outline" className="border-primary/20 hover:border-primary/40" asChild>
+                  <Link to="/login">Sign In</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/signup">Get Started</Link>
+                </Button>
+              </>
+            )}
+          </div> */}
 
           {/* Mobile Menu Button */}
           <Button

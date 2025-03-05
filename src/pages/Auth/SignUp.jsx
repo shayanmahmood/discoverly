@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
-import { User, Lock, Mail } from "lucide-react";
+import { User, Lock, Mail, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import useAuth from "../../hooks/useAuthUser";
 
@@ -11,8 +11,16 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [photo, setPhoto] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const { handleRegister } = useAuth();
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPhoto(file);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -22,7 +30,7 @@ const Signup = () => {
       return;
     }
     setIsLoading(true);
-    handleRegister(email, password, fullName);
+    handleRegister(email, password, fullName, photo);
     setIsLoading(false);
   };
 
@@ -100,6 +108,17 @@ const Signup = () => {
                 placeholder="Confirm password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+            <div className="relative">
+              <ImageIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Input
+                id="photo"
+                name="photo"
+                type="file"
+                accept="image/*"
+                className="pl-10"
+                onChange={handlePhotoChange}
               />
             </div>
           </div>

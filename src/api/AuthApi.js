@@ -8,6 +8,7 @@ import {
   confirmPasswordReset,
 } from "firebase/auth";
 import { auth } from "../firebase/firebase";
+import axios from "axios";
 
 /**
  * Logs in a user with email and password.
@@ -36,8 +37,9 @@ export const login = async (email, password) => {
  * @returns {Promise} Resolves on success, rejects on failure.
  */
 
-export const signUp = async (email, password, name) => {
+export const signUp = async (email, password, name, photo) => {
   try {
+    // Create user in Firebase Authentication
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
@@ -45,10 +47,33 @@ export const signUp = async (email, password, name) => {
     );
     const user = userCredential.user;
 
-    // Update user's display name in Firebase Authentication
-    await updateProfile(user, { displayName: name });
-    return user;
+    let photoURL = "";
+
+    // Upload image to Cloudinary if photo exists
+    if (photo) {
+      try {
+        const formData = new FormData();
+        formData.append("file", photo);
+        formData.append("upload_preset", "myPreset"); // Set in Cloudinary
+
+        const response = await axios.post(
+          "https://api.cloudinary.com/v1_1/duk57i7an/image/upload",
+          formData
+        );
+
+        photoURL = response.data.secure_url;
+      } catch (uploadError) {
+        console.error("Cloudinary Upload Error:", uploadError);
+        throw new Error("Failed to upload image. Please try again.");
+      }
+    }
+
+    // Update Firebase user profile
+    await updateProfile(user, { displayName: name, photoURL });
+
+    return { ...user, displayName: name, photoURL };
   } catch (error) {
+    console.error("Signup Error:", error);
     throw new Error(error.message);
   }
 };

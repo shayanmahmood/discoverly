@@ -28,9 +28,9 @@ const useAuth = () => {
     }
   };
 
-  const handleRegister = async (email, password, name) => {
+  const handleRegister = async (email, password, name, photo) => {
     try {
-      const userData = await signUp(email, password, name);
+      const userData = await signUp(email, password, name, photo);
       setUser(userData);
       navigate("/");
       toast.success("Account created successfully! 🎉");
