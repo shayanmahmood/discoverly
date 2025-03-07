@@ -32,7 +32,7 @@ const useAuth = () => {
     try {
       const userData = await signUp(email, password, name, photo);
       setUser(userData);
-      navigate("/");
+      navigate("/", { replace: true });
       toast.success("Account created successfully! 🎉");
     } catch (err) {
       setError(err.message);
@@ -75,6 +75,8 @@ const useAuth = () => {
       toast.error(err.message);
     }
   };
+
+ 
 
   return {
     user,

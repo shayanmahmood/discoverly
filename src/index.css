@@ -25,7 +25,7 @@
     --ring: 217 65% 45%;
     --radius: 0.5rem;
   }
-  
+
   .dark {
     --background: 220 40% 10%;
     --foreground: 0 0% 95%;
@@ -50,7 +50,9 @@
 }
 
 @layer base {
-  * {@apply border-border;}
+  * {
+    @apply border-border;
+  }
   html {
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     font-synthesis: none;
@@ -60,26 +62,57 @@
     touch-action: manipulation;
     scroll-behavior: smooth;
   }
-  body {@apply bg-background text-foreground antialiased;}
-  h1, h2, h3, h4, h5, h6 {@apply font-display tracking-tight;}
-  a {@apply transition-colors duration-200;}
-  ::selection {@apply bg-primary/20 text-primary;}
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display tracking-tight;
+  }
+  a {
+    @apply transition-colors duration-200;
+  }
+  ::selection {
+    @apply bg-primary/20 text-primary;
+  }
 }
 
 @layer utilities {
-  .text-balance { text-wrap: balance; }
-  .text-pretty { text-wrap: pretty; }
-  .glass {@apply bg-white/70 backdrop-blur-lg border border-white/20;}
-  .glass-dark {@apply bg-black/50 backdrop-blur-lg border border-white/10;}
-  .text-gradient {@apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70;}
-  .hero-gradient {
-    background: radial-gradient(circle at center, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--primary-rgb), 0) 70%);
+  .text-balance {
+    text-wrap: balance;
   }
-  .mask-radial { mask-image: radial-gradient(circle at center, black 0%, transparent 80%); }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  .glass {
+    @apply bg-white/70 backdrop-blur-lg border border-white/20;
+  }
+  .glass-dark {
+    @apply bg-black/50 backdrop-blur-lg border border-white/10;
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70;
+  }
+  .hero-gradient {
+    background: radial-gradient(
+      circle at center,
+      rgba(var(--primary-rgb), 0.1) 0%,
+      rgba(var(--primary-rgb), 0) 70%
+    );
+  }
+  .mask-radial {
+    mask-image: radial-gradient(circle at center, black 0%, transparent 80%);
+  }
   .link-hover {
     @apply relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-current after:transition-all after:duration-300 hover:after:w-full;
   }
-  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
   .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -100,34 +133,59 @@
 
 /* Font loading */
 @font-face {
-  font-family: 'SF Pro Display';
-  src: url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  font-family: "SF Pro Display";
+  src: url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
 /* Animations */
-.animate-delay-100 { animation-delay: 100ms; }
-.animate-delay-200 { animation-delay: 200ms; }
-.animate-delay-300 { animation-delay: 300ms; }
-.animate-delay-400 { animation-delay: 400ms; }
-.animate-delay-500 { animation-delay: 500ms; }
+.animate-delay-100 {
+  animation-delay: 100ms;
+}
+.animate-delay-200 {
+  animation-delay: 200ms;
+}
+.animate-delay-300 {
+  animation-delay: 300ms;
+}
+.animate-delay-400 {
+  animation-delay: 400ms;
+}
+.animate-delay-500 {
+  animation-delay: 500ms;
+}
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 ::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.1);
   border-radius: 10px;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.2); }
-* { scrollbar-width: thin; scrollbar-color: rgba(0, 0, 0, 0.1) transparent; }
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+}
+
+html {
+  overflow-y: auto;
+}
 
 /* Global styles */
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   color: #333;
+  overflow-y: scroll;
 }
 
 select {

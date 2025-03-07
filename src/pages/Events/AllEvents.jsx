@@ -1,78 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 
 import { Button } from "../../components/ui/Button";
-import { Search, Filter } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+import { Filter } from "lucide-react";
 import EventCard from "../../components/EventCard";
-import { Input } from "../../components/ui/Input";
 import { useEvents } from "../../Contexts/EventProvider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
+
+import FiltersAllEvents from "../../components/Events/FiltersAllEvents";
 
 const AllEvents = () => {
-  const [searchParams] = useSearchParams();
-  const category = searchParams.get("cat");
+  const { filteredEventsAllEvents: filteredEvents, handleResetFilters: reset } =
+    useEvents();
 
-  const { allEvents } = useEvents();
-  const categories = allEvents?.reduce((acc, event) => {
-    if (!acc.some((cat) => cat.id === event.categoryExtends.id)) {
-      acc.push(event.categoryExtends);
-    }
-    return acc;
-  }, []);
-
-  const categoriesNames = categories?.map((cat) => cat.name);
-  categoriesNames?.push("All Categories");
-
-  const LocationsCat = allEvents?.reduce((acc, event) => {
-    if (!acc.some((cat) => cat.id === event.categoryExtends.id)) {
-      acc.push(event);
-    }
-    return acc;
-  }, []);
-  const locations = LocationsCat?.map((cat) => cat.location);
-  locations?.push("All Locations");
-
-  // States for filtering
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All Categories");
-  const [selectedLocation, setSelectedLocation] = useState("All Locations");
-  const [filteredEvents, setFilteredEvents] = useState(allEvents);
-
-  // Effect to filter events based on search and filters
-  useEffect(() => {
-    const filtered = allEvents.filter((event) => {
-      // Filter by search query
-      const matchesSearch =
-        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.category.toLowerCase().includes(searchQuery.toLowerCase());
-
-      // Filter by category
-      const matchesCategory =
-        selectedCategory === "All Categories" ||
-        event.category === selectedCategory;
-
-      // Filter by location
-      const matchesLocation =
-        selectedLocation === "All Locations" ||
-        event.location.toLowerCase().includes(selectedLocation.toLowerCase());
-
-      return matchesSearch && matchesCategory && matchesLocation;
-    });
-
-    setFilteredEvents(filtered);
-  }, [searchQuery, selectedCategory, selectedLocation, allEvents]);
-
-  // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  useEffect(() => {
-    if (category) {
-      setSelectedCategory(`${category}`);
-    }
-  }, [category, selectedCategory]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -89,51 +30,7 @@ const AllEvents = () => {
             </p>
 
             {/* Filters */}
-            <div className="max-w-4xl mx-auto bg-card rounded-xl shadow-sm border border-border p-4 md:p-6 -mb-16 relative z-10">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search events..."
-                    className="pl-9"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-
-                <Select
-                  value={selectedCategory}
-                  onValueChange={setSelectedCategory}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categoriesNames.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={selectedLocation}
-                  onValueChange={setSelectedLocation}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Locations" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locations.map((location) => (
-                      <SelectItem key={location} value={location}>
-                        {location}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <FiltersAllEvents />
           </div>
         </section>
 
@@ -148,15 +45,7 @@ const AllEvents = () => {
                 </span>
               </div>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("All Categories");
-                  setSelectedLocation("All Locations");
-                }}
-              >
+              <Button variant="ghost" size="sm" onClick={() => reset()}>
                 Reset Filters
               </Button>
             </div>
@@ -182,14 +71,7 @@ const AllEvents = () => {
                 <p className="text-muted-foreground mb-4">
                   Try adjusting your search filters
                 </p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setSelectedCategory("All Categories");
-                    setSelectedLocation("All Locations");
-                  }}
-                >
+                <Button variant="outline" onClick={() => reset()}>
                   Show All Events
                 </Button>
               </div>

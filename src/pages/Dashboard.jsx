@@ -8,7 +8,6 @@ import {
   TabsTrigger,
 } from "../components/ui/Tabs";
 import { Button } from "../components/ui/Button";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/Avatar";
 import { Separator } from "../components/ui/Separater";
 import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
@@ -23,9 +22,6 @@ import {
   Trash2,
   Eye,
   Users,
-  Bell,
-  LogOut,
-  Home,
   Search,
   X,
 } from "lucide-react";
@@ -44,6 +40,8 @@ import DashboardStats from "../components/DashboardStats";
 import MessageInbox from "../components/MessageInbox";
 import ProfileSettings from "../components/ProfileSettings";
 import { toast } from "sonner";
+import { DashboardHeader } from "../components/Dashboard/DashboardHeader";
+import useAuth from "../hooks/useAuthUser";
 
 // Sample data for the dashboard
 const mockUserEvents = [
@@ -102,7 +100,6 @@ const Dashboard = () => {
   const [currentEvent, setCurrentEvent] = useState(null);
   const [searchMyEvents, setSearchMyEvents] = useState("");
   const [searchRegisteredEvents, setSearchRegisteredEvents] = useState("");
-
   const [newEvent, setNewEvent] = useState({
     title: "",
     date: "",
@@ -176,47 +173,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Dashboard Header */}
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-        <div className="container flex h-16 items-center justify-between py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" asChild className="mr-2">
-              <Link to="/">
-                <Home className="h-5 w-5" />
-                <span className="sr-only">Home</span>
-              </Link>
-            </Button>
-            <h1 className="text-xl font-semibold tracking-tight">
-              Event Dashboard
-            </h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button size="sm" variant="outline" className="gap-1">
-              <Bell className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Notifications
-              </span>
-            </Button>
-
-            <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="https://github.com/shadcn.png" alt="User" />
-                <AvatarFallback>JP</AvatarFallback>
-              </Avatar>
-              <div className="hidden md:block">
-                <p className="text-sm font-medium">John Doe</p>
-                <p className="text-xs text-muted-foreground">
-                  john@example.com
-                </p>
-              </div>
-            </div>
-
-            <Button size="sm" variant="ghost" className="gap-1">
-              <LogOut className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only">Logout</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader />
 
       {/* Main Dashboard Content */}
       <main className="container py-6">

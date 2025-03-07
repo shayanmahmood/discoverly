@@ -23,6 +23,7 @@ import ForgotPassword from "./pages/Auth/ForgetPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
 
 import Dashboard from "./pages/Dashboard";
+import { EventDetailsProvider } from "./Contexts/Events/EventDetailsProvider";
 
 function App() {
   return (
@@ -37,7 +38,9 @@ function App() {
             element={
               <ProtectedRoute>
                 <EventProvider>
-                  <AppLayout />
+                  <EventDetailsProvider>
+                    <AppLayout />
+                  </EventDetailsProvider>
                 </EventProvider>
               </ProtectedRoute>
             }

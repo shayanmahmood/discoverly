@@ -1,3 +1,4 @@
+/* eslint-disable react/react-in-jsx-scope */
 import  { forwardRef } from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";

@@ -7,8 +7,9 @@ import {
   sendPasswordResetEmail,
   confirmPasswordReset,
 } from "firebase/auth";
-import { auth } from "../firebase/firebase";
+import { auth, db } from "../firebase/firebase";
 import axios from "axios";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 
 /**
  * Logs in a user with email and password.
@@ -24,7 +25,8 @@ export const login = async (email, password) => {
       email,
       password
     );
-    return userCredential.user;
+    const user = userCredential.user;
+    return user;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -70,6 +72,17 @@ export const signUp = async (email, password, name, photo) => {
 
     // Update Firebase user profile
     await updateProfile(user, { displayName: name, photoURL });
+
+    const userRef = doc(db, "Users", user.uid);
+    await setDoc(userRef, {
+      uid: user.uid,
+      name: name,
+      email: user.email,
+      photoURL: photoURL,
+      createdAt: serverTimestamp(), 
+      bio: "",
+      phoneNumber:""
+    });
 
     return { ...user, displayName: name, photoURL };
   } catch (error) {
