@@ -5,20 +5,20 @@ import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Mail } from "lucide-react";
 import useAuth from "../../hooks/useAuthUser";
+import { PageLoader } from "../../components/ui/Loader";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const { handleForgotPassword } = useAuth();
+  const { handleForgotPassword, isLoading } = useAuth();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setIsLoading(true);
     handleForgotPassword(email);
-    setIsLoading(false);
     setSubmitted(true);
   };
+
+  if(isLoading) return <PageLoader />
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">

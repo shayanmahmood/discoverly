@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { createContext, useContext, useEffect, useReducer } from "react";
 import { useSearchParams } from "react-router-dom";
+import { PageLoader } from "../components/ui/Loader";
 
 const EventsContext = createContext();
 const allEvents = [
@@ -518,6 +519,9 @@ const initialState = {
   allEvents: allEvents,
   Testmonials: Testmonials,
   SubTopics: SubTopics,
+  isLoading: false,
+  isError: false,
+  ErrorMessage: "",
 
   // AllEvents page's Filteration States
   searchQueryAllEvents: "",
@@ -528,6 +532,15 @@ const initialState = {
 
 function reducer(state, action) {
   switch (action.type) {
+    case "events/loading":
+      return { ...state, isLoading: true };
+    case "events/loaded":
+      return { ...state, isLoading: true };
+    case "events/error":
+      return { ...state, error: true, ErrorMessage: action.payload };
+    case "events/abortError":
+      return { ...state, error: false, ErrorMessage: "" };
+
     case "setFilterAllEvents":
       return { ...state, filteredEventsAllEvents: action.payload };
     case "setCategoryAllEvents":
@@ -555,6 +568,10 @@ const EventProvider = ({ children }) => {
 
   const [
     {
+      isLoading,
+      isError,
+      ErrorMessage,
+
       UpcomingEvents,
       Testmonials,
       SubTopics,
@@ -648,9 +665,36 @@ const EventProvider = ({ children }) => {
     dispatch({ type: "resetAllEvents" });
   };
 
+  const handleLoading = () => {
+    dispatch({ type: "events/loading" });
+  };
+
+  const handleLoaded = () => {
+    dispatch({ type: "events/loaded" });
+  };
+
+  const handleError = () => {
+    dispatch({ type: "events/error" });
+  };
+
+  const handleAbortError = (data) => {
+    dispatch({ type: "events/abortError", payload: data });
+  };
+
+  if (isLoading) return <PageLoader />;
+
   return (
     <EventsContext.Provider
       value={{
+        isLoading,
+        handleLoaded,
+        handleLoading,
+
+        isError,
+        ErrorMessage,
+        handleError,
+        handleAbortError,
+
         UpcomingEvents,
         Testmonials,
         SubTopics,

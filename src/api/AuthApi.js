@@ -6,10 +6,13 @@ import {
   updateProfile,
   sendPasswordResetEmail,
   confirmPasswordReset,
+  updateEmail,
+  updatePhoneNumber,
+  sendEmailVerification,
 } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import axios from "axios";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 
 /**
  * Logs in a user with email and password.
@@ -39,7 +42,7 @@ export const login = async (email, password) => {
  * @returns {Promise} Resolves on success, rejects on failure.
  */
 
-export const signUp = async (email, password, name, photo) => {
+export const signUp = async (email, password, name, photo, phone, bio) => {
   try {
     // Create user in Firebase Authentication
     const userCredential = await createUserWithEmailAndPassword(
@@ -79,12 +82,20 @@ export const signUp = async (email, password, name, photo) => {
       name: name,
       email: user.email,
       photoURL: photoURL,
-      createdAt: serverTimestamp(), 
-      bio: "",
-      phoneNumber:""
+      createdAt: serverTimestamp(),
+      bio: bio,
+      phoneNumber: phone,
+      password: password,
     });
 
-    return { ...user, displayName: name, photoURL };
+    await sendEmailVerification(user);
+
+    return {
+      ...user,
+      displayName: name,
+      photoURL,
+      emailVerified: user.emailVerified,
+    };
   } catch (error) {
     console.error("Signup Error:", error);
     throw new Error(error.message);
@@ -120,6 +131,58 @@ export const resetPassword = async (oobCode, newPassword) => {
     await confirmPasswordReset(auth, oobCode, newPassword);
     return "Password has been reset successfully!";
   } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+export const updateUserProfile = async (userId, updatedData) => {
+  const user = auth.currentUser;
+  if (!user || !userId) {
+    console.error("No authenticated user or user ID provided!");
+    return false;
+  }
+
+  try {
+    // 🔹 Update Firebase Authentication (Only Name & Photo)
+    if (updatedData.name || updatedData.photoURL) {
+      await updateProfile(user, {
+        displayName: updatedData.name || user.displayName,
+        photoURL: updatedData.photoURL || user.photoURL,
+      });
+    }
+
+    // 🔹 Update Firestore Users Collection (No Email & Phone Updates)
+    const userRef = doc(db, "Users", userId);
+    await updateDoc(userRef, {
+      name: updatedData.name || user.displayName,
+      bio: updatedData.bio || "",
+      photoURL: updatedData.photoURL || user.photoURL,
+      company: updatedData.company || "N/A",
+      createdAt: user.metadata.creationTime, // Use metadata for consistency
+      phoneNumber: updatedData.phoneNumber,
+      updatedAt: new Date(),
+    });
+
+    console.log(
+      "User profile updated in Firebase Auth & Firestore successfully!"
+    );
+    return true;
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    return false;
+  }
+};
+
+export const resendVerificationEmail = async () => {
+  try {
+    if (auth.currentUser) {
+      await sendEmailVerification(auth.currentUser);
+      return "Verification email resent. Please check your inbox.";
+    } else {
+      throw new Error("No user is signed in.");
+    }
+  } catch (error) {
+    console.error("Error resending verification email:", error.message);
     throw new Error(error.message);
   }
 };

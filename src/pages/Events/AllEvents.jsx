@@ -6,14 +6,20 @@ import EventCard from "../../components/EventCard";
 import { useEvents } from "../../Contexts/EventProvider";
 
 import FiltersAllEvents from "../../components/Events/FiltersAllEvents";
+import { PageLoader } from "../../components/ui/Loader";
 
 const AllEvents = () => {
-  const { filteredEventsAllEvents: filteredEvents, handleResetFilters: reset } =
-    useEvents();
+  const {
+    filteredEventsAllEvents: filteredEvents,
+    handleResetFilters: reset,
+    isLoading,
+  } = useEvents();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  if (isLoading) return <PageLoader />;
 
   return (
     <div className="flex flex-col min-h-screen">

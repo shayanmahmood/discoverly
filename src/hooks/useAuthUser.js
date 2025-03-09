@@ -4,88 +4,136 @@ import {
   forgotPassword,
   login,
   logout,
+  resendVerificationEmail,
   resetPassword,
   signUp,
+  updateUserProfile,
 } from "../api/AuthApi";
 import { useNavigate } from "react-router-dom";
+import { fetchUser } from "../api/FetchingData";
+import useAuthUser from "./useAuth";
 
 const useAuth = () => {
   const [user, setUser] = useState(null);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-
+  const [isLoading, setIsloading] = useState(false);
   const navigate = useNavigate();
+  const { user: CurrentUser } = useAuthUser();
 
   const handleLogin = async (email, password) => {
+    setIsloading(true);
     try {
       const userData = await login(email, password);
       setUser(userData);
       navigate("/", { replace: true });
       toast.success("Login successful! 🎉");
     } catch (err) {
-      setError(err.message);
       toast.error(`Login failed: ${err.message}`);
+    } finally {
+      setIsloading(false);
     }
   };
 
-  const handleRegister = async (email, password, name, photo) => {
+  const handleRegister = async (email, password, name, photo, phone, bio) => {
+    setIsloading(true);
     try {
-      const userData = await signUp(email, password, name, photo);
+      const userData = await signUp(email, password, name, photo, phone, bio);
       setUser(userData);
-      navigate("/", { replace: true });
+      navigate("/verify-email", { replace: true });
       toast.success("Account created successfully! 🎉");
     } catch (err) {
-      setError(err.message);
       toast.error(`Signup failed: ${err.message}`);
+    } finally {
+      setIsloading(false);
     }
   };
 
   const handleLogout = async () => {
+    setIsloading(true);
     try {
       await logout();
       setUser(null);
       toast.success("Logged out successfully! 👋");
     } catch (err) {
-      setError(err.message);
       toast.error(`Logout failed: ${err.message}`);
+    } finally {
+      setIsloading(false);
     }
   };
 
   const handleForgotPassword = async (email) => {
-    setError(null);
-    setMessage("");
-
+    setIsloading(true);
     try {
       const msg = await forgotPassword(email);
       toast.success(msg);
     } catch (err) {
       toast.error(err.message);
+    } finally {
+      setIsloading(false);
     }
   };
 
   const handleResetPassword = async (oobCode, newPassword) => {
-    setError(null);
-    setMessage("");
-
+    setIsloading(true);
     try {
       const msg = await resetPassword(oobCode, newPassword);
       toast.success(msg);
       navigate("/login");
     } catch (err) {
       toast.error(err.message);
+    } finally {
+      setIsloading(false);
     }
   };
 
- 
+  const getUserById = async (id) => {
+    setIsloading(true);
+    try {
+      const user = await fetchUser(id);
+      return user;
+    } catch (err) {
+      toast.error(`Error having during fetching user ${err.message}`);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
+  const updateUser = async (id, updatedData) => {
+    setIsloading(true);
+    try {
+      const user = await updateUserProfile(id, updatedData);
+      return user;
+    } catch (err) {
+      toast.error(`Error having during updating user ${err.message}`);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
+  const handleResendEmail = async () => {
+    setIsloading(true);
+    try {
+      const user = await resendVerificationEmail();
+      return user;
+    } catch (err) {
+      toast.error(`Error having during Resending email ${err.message}`);
+    } finally {
+      setIsloading(false);
+    }
+  };
 
   return {
+    isLoading,
     user,
-    error,
+
     handleLogin,
     handleRegister,
     handleLogout,
     handleResetPassword,
     handleForgotPassword,
+    handleResendEmail,
+
+    getUserById,
+    updateUser,
   };
 };
 

@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
 import useAuth from "../../hooks/useAuthUser";
+import { PageLoader } from "../../components/ui/Loader";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [searchParams] = useSearchParams();
-  const { handleResetPassword } = useAuth();
+  const { handleResetPassword, isLoading: isLoadingApi } = useAuth();
   const oobCode = searchParams.get("oobCode"); // Get reset code from URL
 
   // Get token from URL if provided
@@ -42,6 +43,8 @@ const ResetPassword = () => {
     setIsLoading(true);
     setIsLoading(false);
   };
+
+  if (isLoadingApi) return <PageLoader />;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">

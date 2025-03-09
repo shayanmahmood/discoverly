@@ -1,12 +1,12 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
-import { Card } from "./ui/Card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/Avatar";
-import { Button } from "./ui/Button";
-import { Input } from "./ui/Input";
-import { Textarea } from "./ui/TextArea";
+import { Card } from "../ui/Card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/Tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/Avatar";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
+import { Textarea } from "../ui/TextArea";
 import {
   Archive,
   Filter,
@@ -23,9 +23,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "./ui/Dialog";
-import { Separator } from "./ui/Separater";
-import { Badge } from "./ui/Badge";
+} from "../ui/Dialog";
+import { Separator } from "../ui/Separater";
+import { Badge } from "../ui/Badge";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -34,7 +34,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/DropDown-Menu";
+} from "../ui/DropDown-Menu";
 
 // Sample message data
 const messageData = [

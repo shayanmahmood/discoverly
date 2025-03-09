@@ -1,21 +1,80 @@
-import React, { useState } from "react";
-import { Card } from "./ui/Card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/Tabs";
-import { Input } from "./ui/Input";
-import { Button } from "./ui/Button";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/Avatar";
-import { Separator } from "./ui/Separater";
+import React, { useEffect, useReducer, useRef, useState } from "react";
+import { Card } from "../ui/Card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/Tabs";
+import { Input } from "../ui/Input";
+import { Button } from "../ui/Button";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/Avatar";
+import { Separator } from "../ui/Separater";
 import { toast } from "sonner";
+import useAuth from "../../hooks/useAuthUser";
+import useAuthUser from "../../hooks/useAuth";
+import { PageLoader, Spinner } from "../ui/Loader";
+
+// const reducer = (state, action) => {
+//   switch (action.type) {
+//     case "":
+//       return;
+
+//     default:
+//       throw new Error("Unknown Action dispatched");
+//   }
+// };
+
+// const initialState = {
+//   profileData: {
+//     name: "",
+//     email: "",
+//     phone: "",
+//     company: "Acme Inc.",
+//     bio: "",
+//     avatar: "",
+//   },
+//   user: null,
+//   isSubmitting: false,
+//   errors: {},
+// };
 
 const ProfileSettings = () => {
+  const fileInputRef = useRef(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState();
+  const [errors, setErrors] = useState({});
+  const { getUserById, updateUser, isLoading } = useAuth();
+  const { user: CurrentUser } = useAuthUser();
+  // const [state, dispatch] = useReducer(reducer, initialState);
   const [profileData, setProfileData] = useState({
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "(555) 123-4567",
+    name: "",
+    email: "",
+    phone: "",
     company: "Acme Inc.",
-    bio: "Event organizer with over 5 years of experience in planning tech conferences.",
-    avatar: "https://github.com/shadcn.png",
+    bio: "",
+    avatar: "",
   });
+
+  useEffect(() => {
+    if (!CurrentUser?.uid) return;
+
+    const fetchUser = async () => {
+      const fetchedUser = await getUserById(CurrentUser.uid);
+      setUser(fetchedUser);
+    };
+
+    fetchUser();
+  }, [CurrentUser?.uid]);
+
+  useEffect(() => {
+    if (user) {
+      console.log(user);
+      setProfileData((prev) => ({
+        ...prev,
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phoneNumber || "",
+        bio: user.bio || "",
+        avatar: user.photoURL || "",
+      }));
+    }
+  }, [user]);
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -30,30 +89,110 @@ const ProfileSettings = () => {
     marketingEmails: false,
   });
 
+  const validateProfileForm = () => {
+    const newErrors = {};
+
+    if (!profileData.name.trim()) newErrors.name = "Name is required";
+
+    if (!profileData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^\S+@\S+\.\S+$/.test(profileData.email)) {
+      newErrors.email = "Email format is invalid";
+    }
+
+    if (!profileData.phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    }
+
+    if (!profileData.bio.trim()) {
+      newErrors.bio = "Bio is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validatePasswordForm = () => {
+    const newErrors = {};
+
+    if (!passwordData.currentPassword) {
+      newErrors.currentPassword = "Current password is required";
+    }
+
+    if (!passwordData.newPassword) {
+      newErrors.newPassword = "New password is required";
+    } else if (passwordData.newPassword.length < 8) {
+      newErrors.newPassword = "Password must be at least 8 characters";
+    }
+
+    if (!passwordData.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords don't match";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleProfileUpdate = (e) => {
     e.preventDefault();
-    toast.success("Profile updated successfully!");
+    setIsSubmitting(true);
+
+    if (validateProfileForm()) {
+      // Log form data to console
+      console.log("Profile form submitted with data:", profileData);
+
+      const updatedData = {
+        name: profileData.name,
+        photoURL: profileData.avatar,
+        email: profileData.email,
+        phoneNumber: profileData.phone,
+        bio: profileData.bio,
+        company: profileData.company,
+      };
+
+      // Simulate API call
+      updateUser(CurrentUser.uid, updatedData);
+      setIsSubmitting(false);
+    }
   };
 
   const handlePasswordChange = (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error("New passwords don't match!");
-      return;
+    if (validatePasswordForm()) {
+      // Log form data to console
+      console.log("Password form submitted with data:", passwordData);
+
+      // Simulate API call
+      setTimeout(() => {
+        setIsSubmitting(false);
+        toast.success("Password changed successfully!");
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      }, 1000);
+    } else {
+      setIsSubmitting(false);
     }
-
-    toast.success("Password changed successfully!");
-    setPasswordData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
   };
 
   const handleNotificationUpdate = (e) => {
     e.preventDefault();
-    toast.success("Notification preferences updated!");
+    setIsSubmitting(true);
+
+    // Log form data to console
+    console.log("Notification settings submitted:", notificationSettings);
+
+    // Simulate API call
+    setTimeout(() => {
+      setIsSubmitting(false);
+      toast.success("Notification preferences updated!");
+    }, 1000);
   };
 
   const toggleNotification = (setting) => {
@@ -62,6 +201,28 @@ const ProfileSettings = () => {
       [setting]: !notificationSettings[setting],
     });
   };
+
+  const handleAvatarChange = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfileData({
+          ...profileData,
+          avatar: e.target.result,
+        });
+        console.log("Avatar changed to:", file.name);
+        toast.success(`Avatar updated to ${file.name}`);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  if (isLoading) return <PageLoader />;
 
   return (
     <div className="flex flex-col space-y-6">
@@ -85,7 +246,18 @@ const ProfileSettings = () => {
                   <AvatarImage src={profileData.avatar} alt="Profile" />
                   <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
-                <Button variant="outline" size="sm">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAvatarChange}
+                >
                   Change Avatar
                 </Button>
               </div>
@@ -102,7 +274,11 @@ const ProfileSettings = () => {
                       onChange={(e) =>
                         setProfileData({ ...profileData, name: e.target.value })
                       }
+                      className={errors.name ? "border-red-500" : ""}
                     />
+                    {errors.name && (
+                      <p className="text-sm text-red-500">{errors.name}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label htmlFor="email" className="text-sm font-medium">
@@ -118,7 +294,11 @@ const ProfileSettings = () => {
                           email: e.target.value,
                         })
                       }
+                      className={errors.email ? "border-red-500" : ""}
                     />
+                    {errors.email && (
+                      <p className="text-sm text-red-500">{errors.email}</p>
+                    )}
                   </div>
                 </div>
 
@@ -136,7 +316,11 @@ const ProfileSettings = () => {
                           phone: e.target.value,
                         })
                       }
+                      className={errors.phone ? "border-red-500" : ""}
                     />
+                    {errors.phone && (
+                      <p className="text-sm text-red-500">{errors.phone}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label htmlFor="company" className="text-sm font-medium">
@@ -165,11 +349,25 @@ const ProfileSettings = () => {
                     onChange={(e) =>
                       setProfileData({ ...profileData, bio: e.target.value })
                     }
+                    className={errors.bio ? "border-red-500" : ""}
                   />
+                  {errors.bio && (
+                    <p className="text-sm text-red-500">{errors.bio}</p>
+                  )}
                 </div>
 
-                <Button type="submit" className="w-full sm:w-auto">
-                  Save Changes
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Spinner className="mr-2" size="sm" /> Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
                 </Button>
               </form>
             </div>
@@ -200,8 +398,13 @@ const ProfileSettings = () => {
                       currentPassword: e.target.value,
                     })
                   }
-                  required
+                  className={errors.currentPassword ? "border-red-500" : ""}
                 />
+                {errors.currentPassword && (
+                  <p className="text-sm text-red-500">
+                    {errors.currentPassword}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -218,8 +421,11 @@ const ProfileSettings = () => {
                       newPassword: e.target.value,
                     })
                   }
-                  required
+                  className={errors.newPassword ? "border-red-500" : ""}
                 />
+                {errors.newPassword && (
+                  <p className="text-sm text-red-500">{errors.newPassword}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -239,11 +445,24 @@ const ProfileSettings = () => {
                       confirmPassword: e.target.value,
                     })
                   }
-                  required
+                  className={errors.confirmPassword ? "border-red-500" : ""}
                 />
+                {errors.confirmPassword && (
+                  <p className="text-sm text-red-500">
+                    {errors.confirmPassword}
+                  </p>
+                )}
               </div>
 
-              <Button type="submit">Update Password</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Spinner className="mr-2" size="sm" /> Updating...
+                  </>
+                ) : (
+                  "Update Password"
+                )}
+              </Button>
             </form>
           </Card>
         </TabsContent>
@@ -334,8 +553,14 @@ const ProfileSettings = () => {
                 </div>
               </div>
 
-              <Button type="submit" className="mt-6">
-                Save Preferences
+              <Button type="submit" className="mt-6" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Spinner className="mr-2" size="sm" /> Saving...
+                  </>
+                ) : (
+                  "Save Preferences"
+                )}
               </Button>
             </form>
           </Card>

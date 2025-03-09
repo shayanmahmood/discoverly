@@ -7,20 +7,24 @@ import { Link } from "react-router-dom";
 import { Lock, Mail } from "lucide-react";
 
 import useAuth from "../../hooks/useAuthUser";
+import { PageLoader } from "../../components/ui/Loader";
+import { toast } from "../../hooks/use-toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { handleLogin } = useAuth();
+  const { handleLogin, isLoading: isLoadingApi } = useAuth();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsLoading(true);
-    if (!email && !password) return;
-
+    if (!email && !password) return toast.error("Plz Write Email or password");
     handleLogin(email, password);
+    setIsLoading(false);
   };
+
+  if (isLoadingApi) return <PageLoader />;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">

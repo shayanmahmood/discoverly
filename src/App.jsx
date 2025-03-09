@@ -8,6 +8,7 @@ import { Toaster as Sonner } from "sonner";
 import EventDetails from "./pages/Events/EventsDetailsPage";
 
 import ProtectedRoute from "./pages/Layout/ProtectedRoute";
+import { EventDetailsProvider } from "./Contexts/Events/EventDetailsProvider";
 import { EventProvider } from "./Contexts/EventProvider";
 import { AuthProvider } from "./Contexts/AuthContext";
 
@@ -23,7 +24,9 @@ import ForgotPassword from "./pages/Auth/ForgetPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
 
 import Dashboard from "./pages/Dashboard";
-import { EventDetailsProvider } from "./Contexts/Events/EventDetailsProvider";
+import EmailVerification from "./pages/Auth/EmailVerification";
+import Welcome from "./pages/Auth/Welcome";
+import AuthHandler from "./pages/Auth/AuthHandler";
 
 function App() {
   return (
@@ -50,11 +53,14 @@ function App() {
             <Route path="/events" element={<AllEvents />} />
             <Route path="/Contact" element={<ContactUs />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/welcome" element={<Welcome />} />
           </Route>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-email" element={<EmailVerification />} />
+          <Route path="/auth" element={<AuthHandler />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

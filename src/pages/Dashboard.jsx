@@ -35,13 +35,12 @@ import {
 } from "../components/ui/Dialog";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/TextArea";
-import DashboardStats from "../components/DashboardStats";
+import DashboardStats from "../components/Dashboard/DashboardStats";
 // import EventList from "@/components/EventList";
-import MessageInbox from "../components/MessageInbox";
-import ProfileSettings from "../components/ProfileSettings";
+import MessageInbox from "../components/Dashboard/MessageInbox";
+import ProfileSettings from "../components/Dashboard/ProfileSettings";
 import { toast } from "sonner";
 import { DashboardHeader } from "../components/Dashboard/DashboardHeader";
-import useAuth from "../hooks/useAuthUser";
 
 // Sample data for the dashboard
 const mockUserEvents = [
