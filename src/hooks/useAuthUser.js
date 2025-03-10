@@ -7,17 +7,16 @@ import {
   resendVerificationEmail,
   resetPassword,
   signUp,
+  updateUserPassword,
   updateUserProfile,
 } from "../api/AuthApi";
 import { useNavigate } from "react-router-dom";
 import { fetchUser } from "../api/FetchingData";
-import useAuthUser from "./useAuth";
 
 const useAuth = () => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsloading] = useState(false);
   const navigate = useNavigate();
-  const { user: CurrentUser } = useAuthUser();
 
   const handleLogin = async (email, password) => {
     setIsloading(true);
@@ -101,9 +100,23 @@ const useAuth = () => {
     setIsloading(true);
     try {
       const user = await updateUserProfile(id, updatedData);
+      navigate("/");
       return user;
     } catch (err) {
       toast.error(`Error having during updating user ${err.message}`);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
+  const updatePassword = async (user, currentPassword, newPassword) => {
+    setIsloading(true);
+    try {
+      const msg = await updateUserPassword(user, currentPassword, newPassword);
+      toast.success("password changed  successfully! 👋");
+      return msg;
+    } catch (err) {
+      toast.error(`Error having during updating password ${err.message}`);
     } finally {
       setIsloading(false);
     }
@@ -134,6 +147,7 @@ const useAuth = () => {
 
     getUserById,
     updateUser,
+    updatePassword,
   };
 };
 

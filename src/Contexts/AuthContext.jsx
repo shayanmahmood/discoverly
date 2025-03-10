@@ -6,7 +6,7 @@ import { auth } from "../firebase/firebase";
 const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(auth.currentUser);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,10 +15,9 @@ const AuthProvider = ({ children }) => {
       setUser(currentUser);
       setLoading(false);
     });
-  
+
     return () => unsubscribe();
   }, []);
-  
 
   return (
     <AuthContext.Provider value={{ user, loading }}>

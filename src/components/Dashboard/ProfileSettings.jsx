@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card } from "../ui/Card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/Tabs";
 import { Input } from "../ui/Input";
@@ -9,46 +9,34 @@ import { toast } from "sonner";
 import useAuth from "../../hooks/useAuthUser";
 import useAuthUser from "../../hooks/useAuth";
 import { PageLoader, Spinner } from "../ui/Loader";
-
-// const reducer = (state, action) => {
-//   switch (action.type) {
-//     case "":
-//       return;
-
-//     default:
-//       throw new Error("Unknown Action dispatched");
-//   }
-// };
-
-// const initialState = {
-//   profileData: {
-//     name: "",
-//     email: "",
-//     phone: "",
-//     company: "Acme Inc.",
-//     bio: "",
-//     avatar: "",
-//   },
-//   user: null,
-//   isSubmitting: false,
-//   errors: {},
-// };
+import { Eye, EyeOff } from "lucide-react";
+import { auth } from "../../firebase/firebase";
 
 const ProfileSettings = () => {
   const fileInputRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState();
+  const [photoFile, setPhotoFile] = useState();
   const [errors, setErrors] = useState({});
-  const { getUserById, updateUser, isLoading } = useAuth();
+  const { getUserById, updateUser, isLoading, updatePassword } = useAuth();
   const { user: CurrentUser } = useAuthUser();
-  // const [state, dispatch] = useReducer(reducer, initialState);
   const [profileData, setProfileData] = useState({
     name: "",
     email: "",
     phone: "",
     company: "Acme Inc.",
     bio: "",
-    avatar: "",
+    avatar: null,
+  });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [showPassword, setShowPassword] = useState({
+    current: false,
+    new: false,
+    confirm: false,
   });
 
   useEffect(() => {
@@ -72,15 +60,19 @@ const ProfileSettings = () => {
         phone: user.phoneNumber || "",
         bio: user.bio || "",
         avatar: user.photoURL || "",
+        currentPassword: user.password || "",
       }));
     }
   }, [user]);
 
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
+  useEffect(() => {
+    if (user) {
+      setPasswordData((prev) => ({
+        ...prev,
+        currentPassword: user.password || "",
+      }));
+    }
+  }, [user, passwordData]);
 
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
@@ -145,7 +137,7 @@ const ProfileSettings = () => {
 
       const updatedData = {
         name: profileData.name,
-        photoURL: profileData.avatar,
+        photo: photoFile || profileData.avatar,
         email: profileData.email,
         phoneNumber: profileData.phone,
         bio: profileData.bio,
@@ -165,17 +157,12 @@ const ProfileSettings = () => {
     if (validatePasswordForm()) {
       // Log form data to console
       console.log("Password form submitted with data:", passwordData);
-
-      // Simulate API call
-      setTimeout(() => {
-        setIsSubmitting(false);
-        toast.success("Password changed successfully!");
-        setPasswordData({
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
-      }, 1000);
+      updatePassword(
+        auth.currentUser,
+        passwordData.currentPassword,
+        passwordData.confirmPassword
+      );
+      setIsSubmitting(false);
     } else {
       setIsSubmitting(false);
     }
@@ -208,7 +195,9 @@ const ProfileSettings = () => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
+
     if (file) {
+      setPhotoFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
         setProfileData({
@@ -280,11 +269,13 @@ const ProfileSettings = () => {
                       <p className="text-sm text-red-500">{errors.name}</p>
                     )}
                   </div>
+
                   <div className="space-y-2">
                     <label htmlFor="email" className="text-sm font-medium">
                       Email
                     </label>
                     <Input
+                      disabled
                       id="email"
                       type="email"
                       value={profileData.email}
@@ -381,6 +372,7 @@ const ProfileSettings = () => {
               onSubmit={handlePasswordChange}
               className="space-y-4 max-w-md"
             >
+              {/* Current Password */}
               <div className="space-y-2">
                 <label
                   htmlFor="currentPassword"
@@ -388,18 +380,38 @@ const ProfileSettings = () => {
                 >
                   Current Password
                 </label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  value={passwordData.currentPassword}
-                  onChange={(e) =>
-                    setPasswordData({
-                      ...passwordData,
-                      currentPassword: e.target.value,
-                    })
-                  }
-                  className={errors.currentPassword ? "border-red-500" : ""}
-                />
+                <div className="relative">
+                  <Input
+                    id="currentPassword"
+                    type={showPassword.current ? "text" : "password"}
+                    value={profileData.currentPassword}
+                    onChange={(e) =>
+                      setPasswordData({
+                        ...passwordData,
+                        currentPassword: e.target.value,
+                      })
+                    }
+                    className={`pr-10 ${
+                      errors.currentPassword ? "border-red-500" : ""
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-2 text-gray-500"
+                    onClick={() =>
+                      setShowPassword({
+                        ...showPassword,
+                        current: !showPassword.current,
+                      })
+                    }
+                  >
+                    {showPassword.current ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
                 {errors.currentPassword && (
                   <p className="text-sm text-red-500">
                     {errors.currentPassword}
@@ -407,27 +419,49 @@ const ProfileSettings = () => {
                 )}
               </div>
 
+              {/* New Password */}
               <div className="space-y-2">
                 <label htmlFor="newPassword" className="text-sm font-medium">
                   New Password
                 </label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  value={passwordData.newPassword}
-                  onChange={(e) =>
-                    setPasswordData({
-                      ...passwordData,
-                      newPassword: e.target.value,
-                    })
-                  }
-                  className={errors.newPassword ? "border-red-500" : ""}
-                />
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showPassword.new ? "text" : "password"}
+                    value={passwordData.newPassword}
+                    onChange={(e) =>
+                      setPasswordData({
+                        ...passwordData,
+                        newPassword: e.target.value,
+                      })
+                    }
+                    className={`pr-10 ${
+                      errors.newPassword ? "border-red-500" : ""
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-2 text-gray-500"
+                    onClick={() =>
+                      setShowPassword({
+                        ...showPassword,
+                        new: !showPassword.new,
+                      })
+                    }
+                  >
+                    {showPassword.new ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
                 {errors.newPassword && (
                   <p className="text-sm text-red-500">{errors.newPassword}</p>
                 )}
               </div>
 
+              {/* Confirm Password */}
               <div className="space-y-2">
                 <label
                   htmlFor="confirmPassword"
@@ -435,18 +469,38 @@ const ProfileSettings = () => {
                 >
                   Confirm New Password
                 </label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={passwordData.confirmPassword}
-                  onChange={(e) =>
-                    setPasswordData({
-                      ...passwordData,
-                      confirmPassword: e.target.value,
-                    })
-                  }
-                  className={errors.confirmPassword ? "border-red-500" : ""}
-                />
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showPassword.confirm ? "text" : "password"}
+                    value={passwordData.confirmPassword}
+                    onChange={(e) =>
+                      setPasswordData({
+                        ...passwordData,
+                        confirmPassword: e.target.value,
+                      })
+                    }
+                    className={`pr-10 ${
+                      errors.confirmPassword ? "border-red-500" : ""
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-2 text-gray-500"
+                    onClick={() =>
+                      setShowPassword({
+                        ...showPassword,
+                        confirm: !showPassword.confirm,
+                      })
+                    }
+                  >
+                    {showPassword.confirm ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
                 {errors.confirmPassword && (
                   <p className="text-sm text-red-500">
                     {errors.confirmPassword}

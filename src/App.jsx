@@ -27,8 +27,20 @@ import Dashboard from "./pages/Dashboard";
 import EmailVerification from "./pages/Auth/EmailVerification";
 import Welcome from "./pages/Auth/Welcome";
 import AuthHandler from "./pages/Auth/AuthHandler";
+import { useEffect, useState } from "react";
+import { auth } from "./firebase/firebase";
 
 function App() {
+  const [user, setUser] = useState(auth.currentUser);
+
+  useEffect(() => {
+    // Firebase Auth Listener: Runs automatically when user updates
+    const unsubscribe = auth.onAuthStateChanged((updatedUser) => {
+      setUser(updatedUser);
+    });
+
+    return () => unsubscribe(); // Cleanup on unmount
+  }, []);
   return (
     <AuthProvider>
       <BrowserRouter>

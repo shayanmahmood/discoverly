@@ -4,6 +4,7 @@ import { Bell, Home, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/Avatar";
 import useAuthUser from "../../hooks/useAuth";
 import useAuth from "../../hooks/useAuthUser";
+import { PageLoader } from "../ui/Loader";
 
 /* eslint-disable react/react-in-jsx-scope */
 export function DashboardHeader() {
@@ -11,9 +12,10 @@ export function DashboardHeader() {
   const { handleLogout } = useAuth();
 
   function handleLogoutUser() {
-    console.log("kk");
     handleLogout();
   }
+
+  if (loading) return <PageLoader />;
 
   return (
     <header className="sticky top-0 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
