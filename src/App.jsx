@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/react-in-jsx-scope */
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 
 import { Toaster } from "./components/ui/Toaster";
 import { Toaster as Sonner } from "sonner";
@@ -27,20 +27,11 @@ import Dashboard from "./pages/Dashboard";
 import EmailVerification from "./pages/Auth/EmailVerification";
 import Welcome from "./pages/Auth/Welcome";
 import AuthHandler from "./pages/Auth/AuthHandler";
-import { useEffect, useState } from "react";
-import { auth } from "./firebase/firebase";
 
 function App() {
-  const [user, setUser] = useState(auth.currentUser);
-
-  useEffect(() => {
-    // Firebase Auth Listener: Runs automatically when user updates
-    const unsubscribe = auth.onAuthStateChanged((updatedUser) => {
-      setUser(updatedUser);
-    });
-
-    return () => unsubscribe(); // Cleanup on unmount
-  }, []);
+  const RedirectToDefaultTab = () => {
+    return <Navigate to="/dashboard?tab=myEvents" replace />;
+  };
   return (
     <AuthProvider>
       <BrowserRouter>
@@ -64,7 +55,9 @@ function App() {
             <Route path="/event/:id" element={<EventDetails />} />
             <Route path="/events" element={<AllEvents />} />
             <Route path="/Contact" element={<ContactUs />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />}>
+              <Route index element={<RedirectToDefaultTab />} />
+            </Route>
             <Route path="/welcome" element={<Welcome />} />
           </Route>
           <Route path="/login" element={<Login />} />

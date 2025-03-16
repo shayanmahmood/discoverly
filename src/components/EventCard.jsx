@@ -10,7 +10,7 @@ const EventCard = ({ title, category, date, location, image, price, link }) => {
       <div className="relative h-40 sm:h-48">
         <img src={image} alt={title} className="w-full h-full object-cover" />
         <div className="absolute top-3 right-3 bg-white py-1 px-2 sm:px-3 rounded-full text-xs sm:text-sm font-medium text-indigo-600">
-          {price}
+          ${price}
         </div>
       </div>
       <div className="p-4 sm:p-5">

@@ -5,7 +5,7 @@ import Footer from "../../components/Footer";
 /* eslint-disable react/react-in-jsx-scope */
 function AppLayout() {
   const location = useLocation();
-  const isDashboard = location.pathname === "/dashboard";
+  const isDashboard = location.pathname.includes("/dashboard");
   return (
     <div className="min-h-screen flex flex-col">
       {!isDashboard && <Navbar />}

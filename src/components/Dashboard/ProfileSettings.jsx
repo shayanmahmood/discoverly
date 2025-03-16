@@ -18,7 +18,13 @@ const ProfileSettings = () => {
   const [user, setUser] = useState();
   const [photoFile, setPhotoFile] = useState();
   const [errors, setErrors] = useState({});
-  const { getUserById, updateUser, isLoading, updatePassword } = useAuth();
+  const {
+    getUserById,
+    updateUser,
+    isLoading,
+    updatePassword,
+    handleCreateCollection,
+  } = useAuth();
   const { user: CurrentUser } = useAuthUser();
   const [profileData, setProfileData] = useState({
     name: "",
@@ -76,9 +82,7 @@ const ProfileSettings = () => {
 
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
-    smsNotifications: false,
-    eventReminders: true,
-    marketingEmails: false,
+    enableMessaging: false,
   });
 
   const validateProfileForm = () => {
@@ -172,14 +176,11 @@ const ProfileSettings = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Log form data to console
-    console.log("Notification settings submitted:", notificationSettings);
+    if (notificationSettings.enableMessaging === true) {
+      handleCreateCollection(auth.currentUser.uid);
+    }
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      toast.success("Notification preferences updated!");
-    }, 1000);
+    setIsSubmitting(false);
   };
 
   const toggleNotification = (setting) => {
@@ -223,7 +224,9 @@ const ProfileSettings = () => {
         <TabsList className="mb-6 h-10">
           <TabsTrigger value="profile">Profile Information</TabsTrigger>
           <TabsTrigger value="password">Change Password</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="notifications">
+            Notifications & Messaging
+          </TabsTrigger>
           <TabsTrigger value="billing">Billing & Payments</TabsTrigger>
         </TabsList>
 
@@ -547,64 +550,31 @@ const ProfileSettings = () => {
                 </div>
 
                 <Separator />
+              </div>
 
+              <h4 className="text-lg font-medium mb-4">
+                Messaging Preferences
+              </h4>
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">SMS Notifications</p>
+                    <p className="font-medium">Enable Messaging</p>
                     <p className="text-sm text-muted-foreground">
-                      Receive updates and alerts via SMS
+                      Receive and sent messages to other Users via app
                     </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
                       className="sr-only peer"
-                      checked={notificationSettings.smsNotifications}
-                      onChange={() => toggleNotification("smsNotifications")}
+                      checked={notificationSettings.enableMessaging}
+                      onChange={() => toggleNotification("enableMessaging")}
                     />
                     <div className="w-11 h-6 bg-muted rounded-full peer peer-checked:bg-primary peer-focus:ring-4 peer-focus:ring-primary/20 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                   </label>
                 </div>
 
                 <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Event Reminders</p>
-                    <p className="text-sm text-muted-foreground">
-                      Receive reminders before your events
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={notificationSettings.eventReminders}
-                      onChange={() => toggleNotification("eventReminders")}
-                    />
-                    <div className="w-11 h-6 bg-muted rounded-full peer peer-checked:bg-primary peer-focus:ring-4 peer-focus:ring-primary/20 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-                  </label>
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Marketing Emails</p>
-                    <p className="text-sm text-muted-foreground">
-                      Receive promotional content and offers
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={notificationSettings.marketingEmails}
-                      onChange={() => toggleNotification("marketingEmails")}
-                    />
-                    <div className="w-11 h-6 bg-muted rounded-full peer peer-checked:bg-primary peer-focus:ring-4 peer-focus:ring-primary/20 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-                  </label>
-                </div>
               </div>
 
               <Button type="submit" className="mt-6" disabled={isSubmitting}>

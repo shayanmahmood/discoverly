@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import {
+  addEvent,
+  createMessagesCollection,
+  deleteDocument,
+  editEvent,
   forgotPassword,
   login,
   logout,
+  registerUserForEvent,
   resendVerificationEmail,
   resetPassword,
   signUp,
@@ -134,6 +139,72 @@ const useAuth = () => {
     }
   };
 
+  const handleRegisterUser = async (eventId, userId) => {
+    setIsloading(true);
+    try {
+      const event = await registerUserForEvent(eventId, userId);
+      toast.success("User has been registered");
+      navigate("/events");
+      return event;
+    } catch (err) {
+      toast.error(`Error having during registering event ${err.message}`);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
+  const handleAddEvent = async (eventData) => {
+    setIsloading(true);
+    try {
+      const event = await addEvent(eventData);
+      toast.success("Event has been created");
+      navigate("/events");
+      return event;
+    } catch (err) {
+      toast.error(`Error having during adding event ${err.message}`);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
+  const handleTheEditEvent = async (eventId, eventData) => {
+    setIsloading(true);
+    try {
+      await editEvent(eventId, eventData);
+      toast.success("Event has been Edited");
+      navigate("/events");
+    } catch (err) {
+      toast.error(`Error having during Editing event ${err.message}`);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
+  const handleDelEvent = async (eventId) => {
+    setIsloading(true);
+    try {
+      await deleteDocument("Events", eventId);
+      toast.success("Event has been deleted");
+      navigate("/events");
+    } catch (err) {
+      toast.error(`Error having during deleting event ${err.message}`);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
+  const handleCreateCollection = async (userId) => {
+    setIsloading(true);
+    try {
+      await createMessagesCollection(userId);
+      toast.success("Messaging has been enabled");
+    } catch (err) {
+      toast.error(`Error having during enabling messaging ${err.message}`);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
   return {
     isLoading,
     user,
@@ -144,6 +215,12 @@ const useAuth = () => {
     handleResetPassword,
     handleForgotPassword,
     handleResendEmail,
+    handleDelEvent,
+
+    handleAddEvent,
+    handleRegisterUser,
+    handleCreateCollection,
+    handleTheEditEvent,
 
     getUserById,
     updateUser,

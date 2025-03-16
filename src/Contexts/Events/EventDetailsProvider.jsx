@@ -4,6 +4,9 @@ import { createContext, useContext, useEffect, useReducer } from "react";
 import { useEvents } from "../EventProvider";
 import { useParams } from "react-router-dom";
 import { toast } from "../../hooks/use-toast";
+import useAuth from "../../hooks/useAuthUser";
+import { auth } from "../../firebase/firebase";
+import { PageLoader } from "../../components/ui/Loader";
 
 const EventsDetailsContext = createContext();
 
@@ -70,12 +73,12 @@ const EventDetailsProvider = ({ children }) => {
   ] = useReducer(reducer, initialState);
   const { allEvents } = useEvents();
   const { id } = useParams();
-
-
+  const { handleRegisterUser, isLoading } = useAuth();
 
   useEffect(() => {
     if (id) {
       const foundEvent = allEvents.find((e) => e.id === id);
+
       if (foundEvent) {
         // Get extended details if available
         handleSetEvent(foundEvent);
@@ -107,11 +110,7 @@ const EventDetailsProvider = ({ children }) => {
 
   const handleRegister = () => {
     dispatch({ type: "setRegister" });
-    toast({
-      title: "Registration successful",
-      description: `You are now registered for ${event?.title}`,
-      duration: 3000,
-    });
+    handleRegisterUser(event.docId, auth.currentUser.uid);
   };
 
   const handleGetInfo = () => {
@@ -174,6 +173,8 @@ const EventDetailsProvider = ({ children }) => {
   const handleUserInfo = (data) => {
     dispatch({ type: "setUserInfo", payload: data });
   };
+
+  if (isLoading) return <PageLoader />;
 
   return (
     <EventsDetailsContext.Provider

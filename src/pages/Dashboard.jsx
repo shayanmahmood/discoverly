@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Tabs,
   TabsContent,
@@ -9,8 +9,6 @@ import {
 } from "../components/ui/Tabs";
 import { Button } from "../components/ui/Button";
 import { Separator } from "../components/ui/Separater";
-import { Badge } from "../components/ui/Badge";
-import { Card } from "../components/ui/Card";
 import {
   CalendarPlus,
   BarChart3,
@@ -18,60 +16,55 @@ import {
   Settings,
   Ticket,
   Calendar,
-  Pencil,
-  Trash2,
-  Eye,
-  Users,
-  Search,
-  X,
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../components/ui/Dialog";
-import { Input } from "../components/ui/Input";
-import { Textarea } from "../components/ui/TextArea";
+
 import DashboardStats from "../components/Dashboard/DashboardStats";
-// import EventList from "@/components/EventList";
 import MessageInbox from "../components/Dashboard/MessageInbox";
 import ProfileSettings from "../components/Dashboard/ProfileSettings";
 import { toast } from "sonner";
 import { DashboardHeader } from "../components/Dashboard/DashboardHeader";
+import EventSearch from "../components/Dashboard/EventSearch";
+import EventTable from "../components/Dashboard/EventTable";
+import RegisteredEventCards from "../components/Dashboard/RegisteredEventCards";
+import CreateEventDialog from "../components/Dashboard/CreateEventDialog";
+import EditEventDialog from "../components/Dashboard/EditEventDialog";
+import DeleteEventDialog from "../components/Dashboard/DeleteEventDialog";
+import StatsCards from "../components/Dashboard/StatsCards";
+import useAuth from "../hooks/useAuthUser";
+import { useGetEvents } from "../hooks/Events/useGetEvents";
+import { PageLoader } from "../components/ui/Loader";
+import useAuthUser from "../hooks/useAuth";
 
 // Sample data for the dashboard
-const mockUserEvents = [
-  {
-    id: "101",
-    title: "Tech Conference 2023",
-    date: "2023-11-15",
-    location: "San Francisco, CA",
-    attendees: 342,
-    sales: "$15,240",
-    status: "active",
-  },
-  {
-    id: "102",
-    title: "Marketing Workshop",
-    date: "2023-11-22",
-    location: "Online",
-    attendees: 89,
-    sales: "$4,450",
-    status: "active",
-  },
-  {
-    id: "103",
-    title: "Product Launch Party",
-    date: "2023-12-05",
-    location: "New York, NY",
-    attendees: 156,
-    sales: "$7,800",
-    status: "draft",
-  },
-];
+// const mockUserEvents = [
+//   {
+//     id: "101",
+//     title: "Tech Conference 2023",
+//     date: "2023-11-15",
+//     location: "San Francisco, CA",
+//     attendees: 342,
+//     sales: "$15,240",
+//     status: "active",
+//   },
+//   {
+//     id: "102",
+//     title: "Marketing Workshop",
+//     date: "2023-11-22",
+//     location: "Online",
+//     attendees: 89,
+//     sales: "$4,450",
+//     status: "active",
+//   },
+//   {
+//     id: "103",
+//     title: "Product Launch Party",
+//     date: "2023-12-05",
+//     location: "New York, NY",
+//     attendees: 156,
+//     sales: "$7,800",
+//     status: "draft",
+//   },
+// ];
 
 const mockRegisteredEvents = [
   {
@@ -92,6 +85,65 @@ const mockRegisteredEvents = [
   },
 ];
 
+const categoryOptions = [
+  {
+    id: "technology",
+    name: "Technology",
+    icon: "Code",
+    color: "from-[#6366f1]/20 to-[#8b5cf6]/20",
+    description: "Tech conferences and workshops",
+  },
+  {
+    id: "business",
+    name: "Business",
+    icon: "Briefcase",
+    color: "from-[#0ea5e9]/20 to-[#6366f1]/20",
+    description: "Networking and professional events",
+  },
+  {
+    id: "health",
+    name: "Health & Wellness",
+    icon: "HeartPulse",
+    color: "from-[#10b981]/20 to-[#14b8a6]/20",
+    description: "Fitness classes and mental wellness",
+  },
+  {
+    id: "music",
+    name: "Music",
+    icon: "Mic2",
+    color: "from-[#8b5cf6]/20 to-[#ec4899]/20",
+    description: "Live shows and festivals",
+  },
+  {
+    id: "art",
+    name: "Art & Design",
+    icon: "Palette",
+    color: "from-[#f43f5e]/20 to-[#ec4899]/20",
+    description: "Exhibitions and creative workshops",
+  },
+  {
+    id: "entertainment",
+    name: "Entertainment",
+    icon: "Film",
+    color: "from-[#f59e0b]/20 to-[#f97316]/20",
+    description: "Concerts, shows, and performances",
+  },
+  {
+    id: "education",
+    name: "Education",
+    icon: "Lightbulb",
+    color: "from-[#3b82f6]/20 to-[#6366f1]/20",
+    description: "Courses, lectures, and learning events",
+  },
+  {
+    id: "community",
+    name: "Community",
+    icon: "Users",
+    color: "from-[#ec4899]/20 to-[#8b5cf6]/20",
+    description: "Meetups and social gatherings",
+  },
+];
+
 const Dashboard = () => {
   const [isCreateEventDialogOpen, setIsCreateEventDialogOpen] = useState(false);
   const [isEditEventDialogOpen, setIsEditEventDialogOpen] = useState(false);
@@ -99,6 +151,13 @@ const Dashboard = () => {
   const [currentEvent, setCurrentEvent] = useState(null);
   const [searchMyEvents, setSearchMyEvents] = useState("");
   const [searchRegisteredEvents, setSearchRegisteredEvents] = useState("");
+  const { events, loading } = useGetEvents();
+  const { user, loading: isLoading } = useAuthUser();
+  const filtered = events?.filter((event) => event.organizeruid === user.uid);
+  const mockUserEvents = events
+    .filter((event) => event.registeredUsers)
+    .filter((event) => event.registeredUsers.includes(user.uid));
+
   const [newEvent, setNewEvent] = useState({
     title: "",
     date: "",
@@ -106,18 +165,47 @@ const Dashboard = () => {
     location: "",
     description: "",
     category: "",
-    price: "",
+    featured: false,
+    upcoming: true,
+    image: "",
+    attendees: 0,
+    organizer: "",
+    website: "",
+    categoryId: "",
   });
 
-  // Filter my events based on search query
-  const filteredMyEvents = mockUserEvents.filter(
+  const [agendaItems, setAgendaItems] = useState([{ time: "", activity: "" }]);
+  const [sponsors, setSponsors] = useState([]);
+  const [additionalImages, setAdditionalImages] = useState([""]);
+  const [lineup, setLineup] = useState([{ artist: "", time: "" }]);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get("tab") || "myEvents"; // Default to 'myEvents'
+
+  // Local state to track tab selection
+  const [currentTab, setCurrentTab] = useState(tabFromUrl);
+  const { handleAddEvent, handleTheEditEvent, handleDelEvent } = useAuth();
+
+  // Sync local state with URL changes
+  useEffect(() => {
+    if (tabFromUrl !== currentTab) {
+      setCurrentTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
+
+  // Handle tab change
+  const handleTabChange = (tabValue) => {
+    setCurrentTab(tabValue);
+    setSearchParams({ tab: tabValue }); // Update URL
+  };
+
+  const filteredMyEvents = filtered.filter(
     (event) =>
       event.title.toLowerCase().includes(searchMyEvents.toLowerCase()) ||
       event.location.toLowerCase().includes(searchMyEvents.toLowerCase())
   );
 
-  // Filter registered events based on search query
-  const filteredRegisteredEvents = mockRegisteredEvents.filter(
+  const filteredRegisteredEvents = mockUserEvents.filter(
     (event) =>
       event.title
         .toLowerCase()
@@ -132,35 +220,121 @@ const Dashboard = () => {
 
   const handleCreateEvent = (e) => {
     e.preventDefault();
-    toast.success("Event created successfully!");
+
+    const eventObject = {
+      ...newEvent,
+      categoryExtends:
+        categoryOptions.find((cat) => cat.id === newEvent.categoryId) || {},
+      extendedEventDetails: {
+        description: newEvent.description,
+        organizer: newEvent.organizer,
+        ticketPrice: newEvent.ticketPrice || newEvent.price,
+        website: newEvent.website,
+        sponsors: sponsors.filter((s) => s.trim() !== ""),
+        agenda: agendaItems.filter(
+          (item) => item.time.trim() !== "" || item.activity.trim() !== ""
+        ),
+        additionalImages: additionalImages,
+        location: newEvent.location,
+      },
+    };
+
+    console.log("New Event Object:", eventObject);
+
+    toast.success("Event creating!");
+    handleAddEvent(eventObject);
     setIsCreateEventDialogOpen(false);
-    // In a real app, this would call an API to create the event
+
+    resetEventForm();
   };
 
   const handleEditEvent = (e) => {
     e.preventDefault();
-    toast.success("Event updated successfully!");
+    const eventObject = {
+      ...newEvent,
+      categoryExtends:
+        categoryOptions.find((cat) => cat.id === newEvent.categoryId) || {},
+      extendedEventDetails: {
+        description: newEvent.description,
+        organizer: newEvent.organizer,
+        ticketPrice: newEvent.ticketPrice || newEvent.price,
+        website: newEvent.website,
+        sponsors: sponsors.filter((s) => s.trim() !== ""),
+        agenda: agendaItems.filter(
+          (item) => item.time.trim() !== "" || item.activity.trim() !== ""
+        ),
+        additionalImages: additionalImages.filter((img) => img !== ""),
+        location: newEvent.location,
+      },
+    };
+    console.log("Updated Event Object:", eventObject);
+    handleTheEditEvent(eventObject.docId, eventObject);
     setIsEditEventDialogOpen(false);
-    // In a real app, this would call an API to update the event
   };
 
   const handleDeleteEvent = () => {
-    toast.success("Event deleted successfully!");
+    console.log("Deleting Event:", currentEvent);
+    handleDelEvent(currentEvent.docId);
     setIsDeleteEventDialogOpen(false);
-    // In a real app, this would call an API to delete the event
   };
 
   const openEditDialog = (event) => {
     setCurrentEvent(event);
+
     setNewEvent({
+      ...event,
       title: event.title,
       date: event.date,
-      time: "10:00 AM", // Example default time
+      time: event.time,
       location: event.location,
-      description: "Event description here", // Placeholder
-      category: "Technology", // Placeholder
-      price: "99.99", // Placeholder
+      description: event.extendedEventDetails?.description || "",
+      category: event.category,
+      categoryId: event.categoryExtends?.id || "",
+      featured: event.featured || false,
+      upcoming: event.upcoming || event.upcomming || false,
+      image: event.image || "",
+      attendees: event.attendees || 0,
+      organizer: event.extendedEventDetails?.organizer || "",
+      website: event.extendedEventDetails?.website || "",
+      ticketPrice: event.extendedEventDetails?.ticketPrice || "",
     });
+
+    if (
+      event.extendedEventDetails?.agenda &&
+      event.extendedEventDetails.agenda.length > 0
+    ) {
+      setAgendaItems(event.extendedEventDetails.agenda);
+    } else {
+      setAgendaItems([{ time: "", activity: "" }]);
+    }
+
+    if (
+      event.extendedEventDetails?.sponsors &&
+      event.extendedEventDetails.sponsors.length > 0
+    ) {
+      setSponsors(event.extendedEventDetails.sponsors);
+    } else {
+      setSponsors([""]);
+    }
+
+    if (
+      event.extendedEventDetails?.additionalImages &&
+      event.extendedEventDetails.additionalImages.length > 0
+    ) {
+      setAdditionalImages(event.extendedEventDetails.additionalImages);
+    } else {
+      setAdditionalImages([""]);
+    }
+
+    if (
+      event.extendedEventDetails?.lineup &&
+      event.extendedEventDetails.lineup.length > 0
+    ) {
+      setLineup(event.extendedEventDetails.lineup);
+    } else {
+      setLineup([{ artist: "", time: "" }]);
+    }
+
     setIsEditEventDialogOpen(true);
   };
 
@@ -169,21 +343,138 @@ const Dashboard = () => {
     setIsDeleteEventDialogOpen(true);
   };
 
+  const resetEventForm = () => {
+    setNewEvent({
+      title: "",
+      date: "",
+      time: "",
+      location: "",
+      description: "",
+      category: "",
+      featured: false,
+      upcoming: true,
+      image: "",
+      attendees: 0,
+      organizer: "",
+      website: "",
+      categoryId: "",
+    });
+
+    setAdditionalImages([]);
+  };
+
+  const addAgendaItem = () => {
+    setAgendaItems([...agendaItems, { time: "", activity: "" }]);
+  };
+
+  const updateAgendaItem = (index, field, value) => {
+    const updatedAgenda = [...agendaItems];
+    updatedAgenda[index][field] = value;
+    setAgendaItems(updatedAgenda);
+  };
+
+  const removeAgendaItem = (index) => {
+    if (agendaItems.length > 1) {
+      const updatedAgenda = agendaItems.filter((_, i) => i !== index);
+      setAgendaItems(updatedAgenda);
+    }
+  };
+
+  const addSponsor = () => {
+    setSponsors([...sponsors, ""]);
+  };
+
+  const updateSponsor = (index, value) => {
+    const updatedSponsors = [...sponsors];
+    updatedSponsors[index] = value;
+    setSponsors(updatedSponsors);
+  };
+
+  const removeSponsor = (index) => {
+    if (sponsors.length > 1) {
+      const updatedSponsors = sponsors.filter((_, i) => i !== index);
+      setSponsors(updatedSponsors);
+    }
+  };
+
+  const addAdditionalImage = (data) => {
+    setAdditionalImages(data);
+  };
+
+  const updateAdditionalImage = (index, value) => {
+    const updatedImages = [...additionalImages];
+    updatedImages[index] = value;
+    setAdditionalImages(updatedImages);
+  };
+
+  const removeAdditionalImage = (index) => {
+    if (additionalImages.length > 1) {
+      const updatedImages = additionalImages.filter((_, i) => i !== index);
+      setAdditionalImages(updatedImages);
+    }
+  };
+
+  const addLineupItem = () => {
+    setLineup([...lineup, { artist: "", time: "" }]);
+  };
+
+  const updateLineupItem = (index, field, value) => {
+    const updatedLineup = [...lineup];
+    updatedLineup[index][field] = value;
+    setLineup(updatedLineup);
+  };
+
+  const removeLineupItem = (index) => {
+    if (lineup.length > 1) {
+      const updatedLineup = lineup.filter((_, i) => i !== index);
+      setLineup(updatedLineup);
+    }
+  };
+
+  const memoizedProps = useMemo(
+    () => ({
+      newEvent,
+      setNewEvent,
+      categoryOptions,
+      agendaItems,
+      addAgendaItem,
+      updateAgendaItem,
+      removeAgendaItem,
+      sponsors,
+      addSponsor,
+      updateSponsor,
+      removeSponsor,
+      additionalImages,
+      addAdditionalImage,
+      updateAdditionalImage,
+      removeAdditionalImage,
+      lineup,
+      addLineupItem,
+      updateLineupItem,
+      removeLineupItem,
+      handleCreateEvent,
+    }),
+    [newEvent, categoryOptions, agendaItems, sponsors, additionalImages, lineup]
+  );
+
+  if (loading && isLoading) return <PageLoader />;
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Dashboard Header */}
       <DashboardHeader />
 
-      {/* Main Dashboard Content */}
       <main className="container py-6">
         <div className="flex flex-col space-y-6">
-          {/* Dashboard Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h2 className="text-3xl font-bold tracking-tight">
               Your Dashboard
             </h2>
             <Button
-              onClick={() => setIsCreateEventDialogOpen(true)}
+              onClick={() => {
+                setCurrentEvent(false);
+                resetEventForm();
+                setIsCreateEventDialogOpen(true);
+              }}
               className="w-full sm:w-auto"
             >
               <CalendarPlus className="mr-2 h-4 w-4" /> Create New Event
@@ -192,50 +483,17 @@ const Dashboard = () => {
 
           <Separator />
 
-          {/* Quick Stats Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="p-4 flex flex-col">
-              <p className="text-sm font-medium text-muted-foreground">
-                Total Events
-              </p>
-              <p className="text-2xl font-bold">{mockUserEvents.length}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                +2 from last month
-              </p>
-            </Card>
-            <Card className="p-4 flex flex-col">
-              <p className="text-sm font-medium text-muted-foreground">
-                Registered Events
-              </p>
-              <p className="text-2xl font-bold">
-                {mockRegisteredEvents.length}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                +1 from last month
-              </p>
-            </Card>
-            <Card className="p-4 flex flex-col">
-              <p className="text-sm font-medium text-muted-foreground">
-                Total Attendees
-              </p>
-              <p className="text-2xl font-bold">587</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                +124 from last month
-              </p>
-            </Card>
-            <Card className="p-4 flex flex-col">
-              <p className="text-sm font-medium text-muted-foreground">
-                Total Revenue
-              </p>
-              <p className="text-2xl font-bold">$27,490</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                +$5,840 from last month
-              </p>
-            </Card>
-          </div>
+          <StatsCards
+            userEventsCount={mockUserEvents.length}
+            registeredEventsCount={mockRegisteredEvents.length}
+          />
 
-          {/* Dashboard Tabs */}
-          <Tabs defaultValue="myEvents" className="w-full mt-6">
+          <Tabs
+            defaultValue="myEvents"
+            value={currentTab}
+            onValueChange={handleTabChange}
+            className="w-full mt-6"
+          >
             <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-8">
               <TabsTrigger value="myEvents" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" /> My Events
@@ -257,30 +515,15 @@ const Dashboard = () => {
               </TabsTrigger>
             </TabsList>
 
-            {/* My Events Tab */}
             <TabsContent value="myEvents" className="space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-semibold">Events You Created</h3>
                 <div className="flex gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      placeholder="Search events..."
-                      className="pl-10 w-[250px]"
-                      value={searchMyEvents}
-                      onChange={(e) => setSearchMyEvents(e.target.value)}
-                    />
-                    {searchMyEvents && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground"
-                        onClick={() => setSearchMyEvents("")}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
+                  <EventSearch
+                    searchTerm={searchMyEvents}
+                    setSearchTerm={setSearchMyEvents}
+                    placeholder="Search events..."
+                  />
                 </div>
               </div>
 
@@ -313,7 +556,7 @@ const Dashboard = () => {
                       </tr>
                     </thead>
                     <tbody className="[&_tr:last-child]:border-0">
-                      {filteredMyEvents.length === 0 ? (
+                      {events.length === 0 ? (
                         <tr>
                           <td
                             colSpan="7"
@@ -323,59 +566,11 @@ const Dashboard = () => {
                           </td>
                         </tr>
                       ) : (
-                        filteredMyEvents.map((event) => (
-                          <tr
-                            key={event.id}
-                            className="border-b transition-colors hover:bg-muted/50"
-                          >
-                            <td className="p-4 align-middle">{event.title}</td>
-                            <td className="p-4 align-middle">{event.date}</td>
-                            <td className="p-4 align-middle">
-                              {event.location}
-                            </td>
-                            <td className="p-4 align-middle">
-                              {event.attendees}
-                            </td>
-                            <td className="p-4 align-middle">{event.sales}</td>
-                            <td className="p-4 align-middle">
-                              <Badge
-                                variant={
-                                  event.status === "active"
-                                    ? "default"
-                                    : "outline"
-                                }
-                              >
-                                {event.status === "active" ? "Active" : "Draft"}
-                              </Badge>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <div className="flex gap-2">
-                                <Button variant="ghost" size="icon" asChild>
-                                  <Link to={`/event/${event.id}`}>
-                                    <Eye className="h-4 w-4" />
-                                    <span className="sr-only">View</span>
-                                  </Link>
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => openEditDialog(event)}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                  <span className="sr-only">Edit</span>
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => openDeleteDialog(event)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                  <span className="sr-only">Delete</span>
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
+                        <EventTable
+                          events={filteredMyEvents}
+                          onEditEvent={openEditDialog}
+                          onDeleteEvent={openDeleteDialog}
+                        />
                       )}
                     </tbody>
                   </table>
@@ -383,99 +578,29 @@ const Dashboard = () => {
               </div>
             </TabsContent>
 
-            {/* Registered Events Tab */}
             <TabsContent value="registered" className="space-y-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-semibold">
                   Events You've Registered For
                 </h3>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    placeholder="Search registered events..."
-                    className="pl-10 w-[280px]"
-                    value={searchRegisteredEvents}
-                    onChange={(e) => setSearchRegisteredEvents(e.target.value)}
-                  />
-                  {searchRegisteredEvents && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground"
-                      onClick={() => setSearchRegisteredEvents("")}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
+                <EventSearch
+                  searchTerm={searchRegisteredEvents}
+                  setSearchTerm={setSearchRegisteredEvents}
+                  placeholder="Search registered events..."
+                />
               </div>
 
-              {filteredRegisteredEvents.length === 0 ? (
-                <div className="text-center py-8 border rounded-md">
-                  <Ticket className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-lg font-medium">
-                    No registered events found
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Try a different search term
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredRegisteredEvents.map((event) => (
-                    <Card
-                      key={event.id}
-                      className="flex flex-col overflow-hidden"
-                    >
-                      <div className="aspect-video bg-muted relative">
-                        <img
-                          src={`https://source.unsplash.com/random/800x600?event&${event.id}`}
-                          alt={event.title}
-                          className="object-cover w-full h-full"
-                        />
-                        <Badge className="absolute top-2 right-2">
-                          {event.ticketType}
-                        </Badge>
-                      </div>
-                      <div className="p-4 flex flex-col flex-grow">
-                        <h4 className="font-semibold text-lg">{event.title}</h4>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          By {event.organizer}
-                        </p>
-                        <div className="flex items-center text-sm text-muted-foreground mt-2">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          {event.date}
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground mt-1">
-                          <Users className="h-4 w-4 mr-2" />
-                          {event.location}
-                        </div>
-                        <div className="mt-auto pt-4 flex justify-between">
-                          <Button variant="outline" size="sm" asChild>
-                            <Link to={`/event/${event.id}`}>View Details</Link>
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <MessagesSquare className="h-4 w-4 mr-2" /> Contact
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
+              <RegisteredEventCards events={filteredRegisteredEvents} />
             </TabsContent>
 
-            {/* Messages Tab */}
             <TabsContent value="messages">
               <MessageInbox />
             </TabsContent>
 
-            {/* Statistics Tab */}
             <TabsContent value="stats">
               <DashboardStats />
             </TabsContent>
 
-            {/* Settings Tab */}
             <TabsContent value="settings">
               <ProfileSettings />
             </TabsContent>
@@ -483,274 +608,43 @@ const Dashboard = () => {
         </div>
       </main>
 
-      {/* Create Event Dialog */}
-      <Dialog
-        open={isCreateEventDialogOpen}
-        onOpenChange={setIsCreateEventDialogOpen}
-      >
-        <DialogContent className="sm:max-w-[625px]">
-          <DialogHeader>
-            <DialogTitle>Create New Event</DialogTitle>
-            <DialogDescription>
-              Fill in the details below to create a new event. Click save when
-              you're done.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleCreateEvent}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-1">
-                  <Input
-                    id="title"
-                    placeholder="Event Title"
-                    className="w-full"
-                    value={newEvent.title}
-                    onChange={(e) =>
-                      setNewEvent({ ...newEvent, title: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Input
-                    id="category"
-                    placeholder="Category"
-                    className="w-full"
-                    value={newEvent.category}
-                    onChange={(e) =>
-                      setNewEvent({ ...newEvent, category: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-              </div>
+      <CreateEventDialog
+        isOpen={isCreateEventDialogOpen}
+        setIsOpen={setIsCreateEventDialogOpen}
+        handleSubmit={handleCreateEvent}
+        {...memoizedProps}
+      />
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-1">
-                  <Input
-                    id="date"
-                    type="date"
-                    className="w-full"
-                    value={newEvent.date}
-                    onChange={(e) =>
-                      setNewEvent({ ...newEvent, date: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Input
-                    id="time"
-                    type="time"
-                    className="w-full"
-                    value={newEvent.time}
-                    onChange={(e) =>
-                      setNewEvent({ ...newEvent, time: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-              </div>
+      <EditEventDialog
+        isOpen={isEditEventDialogOpen}
+        setIsOpen={setIsEditEventDialogOpen}
+        newEvent={newEvent}
+        setNewEvent={setNewEvent}
+        categoryOptions={categoryOptions}
+        agendaItems={agendaItems}
+        addAgendaItem={addAgendaItem}
+        updateAgendaItem={updateAgendaItem}
+        removeAgendaItem={removeAgendaItem}
+        sponsors={sponsors}
+        addSponsor={addSponsor}
+        updateSponsor={updateSponsor}
+        removeSponsor={removeSponsor}
+        additionalImages={additionalImages}
+        addAdditionalImage={addAdditionalImage}
+        updateAdditionalImage={updateAdditionalImage}
+        removeAdditionalImage={removeAdditionalImage}
+        lineup={lineup}
+        addLineupItem={addLineupItem}
+        updateLineupItem={updateLineupItem}
+        removeLineupItem={removeLineupItem}
+        handleSubmit={handleEditEvent}
+      />
 
-              <div className="space-y-1">
-                <Input
-                  id="location"
-                  placeholder="Location"
-                  className="w-full"
-                  value={newEvent.location}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, location: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Input
-                  id="price"
-                  placeholder="Ticket Price ($)"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  className="w-full"
-                  value={newEvent.price}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, price: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Textarea
-                  id="description"
-                  placeholder="Event Description"
-                  className="w-full min-h-[100px]"
-                  value={newEvent.description}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, description: e.target.value })
-                  }
-                  required
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit">Create Event</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Event Dialog */}
-      <Dialog
-        open={isEditEventDialogOpen}
-        onOpenChange={setIsEditEventDialogOpen}
-      >
-        <DialogContent className="sm:max-w-[625px]">
-          <DialogHeader>
-            <DialogTitle>Edit Event</DialogTitle>
-            <DialogDescription>
-              Update the details of your event. Click save when you're done.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleEditEvent}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-1">
-                  <Input
-                    id="edit-title"
-                    placeholder="Event Title"
-                    className="w-full"
-                    value={newEvent.title}
-                    onChange={(e) =>
-                      setNewEvent({ ...newEvent, title: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Input
-                    id="edit-category"
-                    placeholder="Category"
-                    className="w-full"
-                    value={newEvent.category}
-                    onChange={(e) =>
-                      setNewEvent({ ...newEvent, category: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-1">
-                  <Input
-                    id="edit-date"
-                    type="date"
-                    className="w-full"
-                    value={newEvent.date}
-                    onChange={(e) =>
-                      setNewEvent({ ...newEvent, date: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Input
-                    id="edit-time"
-                    type="time"
-                    className="w-full"
-                    value={newEvent.time}
-                    onChange={(e) =>
-                      setNewEvent({ ...newEvent, time: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <Input
-                  id="edit-location"
-                  placeholder="Location"
-                  className="w-full"
-                  value={newEvent.location}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, location: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Input
-                  id="edit-price"
-                  placeholder="Ticket Price ($)"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  className="w-full"
-                  value={newEvent.price}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, price: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Textarea
-                  id="edit-description"
-                  placeholder="Event Description"
-                  className="w-full min-h-[100px]"
-                  value={newEvent.description}
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, description: e.target.value })
-                  }
-                  required
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit">Save Changes</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Event Dialog */}
-      <Dialog
-        open={isDeleteEventDialogOpen}
-        onOpenChange={setIsDeleteEventDialogOpen}
-      >
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Delete Event</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this event? This action cannot be
-              undone.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            {currentEvent && (
-              <p className="text-sm font-medium">
-                Event: <span className="font-bold">{currentEvent.title}</span>
-              </p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteEventDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteEvent}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteEventDialog
+        isOpen={isDeleteEventDialogOpen}
+        setIsOpen={setIsDeleteEventDialogOpen}
+        handleDelete={handleDeleteEvent}
+      />
     </div>
   );
 };
