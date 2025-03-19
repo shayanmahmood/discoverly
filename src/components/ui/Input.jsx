@@ -9,13 +9,15 @@ const Input = React.forwardRef(
       setInternalValue(value);
     }, [value]);
 
-    useEffect(() => {
-      const timeout = setTimeout(() => {
-        onChange?.({ target: { value: internalValue } });
-      }, 300); // Debounce delay (adjust as needed)
-
-      return () => clearTimeout(timeout);
-    }, [internalValue, onChange]);
+    // Prevent file input from being controlled like a text input
+    const handleChange = (e) => {
+      if (type === "file") {
+        onChange?.(e); // Directly call onChange for file inputs
+      } else {
+        setInternalValue(e.target.value);
+        onChange?.({ target: { value: e.target.value } });
+      }
+    };
 
     return (
       <input
@@ -25,8 +27,8 @@ const Input = React.forwardRef(
           className
         )}
         ref={ref}
-        value={internalValue}
-        onChange={(e) => setInternalValue(e.target.value)}
+        value={type === "file" ? undefined : internalValue} // Allow file input to work
+        onChange={handleChange}
         {...props}
       />
     );

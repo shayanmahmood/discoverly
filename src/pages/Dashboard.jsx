@@ -35,56 +35,6 @@ import { useGetEvents } from "../hooks/Events/useGetEvents";
 import { PageLoader } from "../components/ui/Loader";
 import useAuthUser from "../hooks/useAuth";
 
-// Sample data for the dashboard
-// const mockUserEvents = [
-//   {
-//     id: "101",
-//     title: "Tech Conference 2023",
-//     date: "2023-11-15",
-//     location: "San Francisco, CA",
-//     attendees: 342,
-//     sales: "$15,240",
-//     status: "active",
-//   },
-//   {
-//     id: "102",
-//     title: "Marketing Workshop",
-//     date: "2023-11-22",
-//     location: "Online",
-//     attendees: 89,
-//     sales: "$4,450",
-//     status: "active",
-//   },
-//   {
-//     id: "103",
-//     title: "Product Launch Party",
-//     date: "2023-12-05",
-//     location: "New York, NY",
-//     attendees: 156,
-//     sales: "$7,800",
-//     status: "draft",
-//   },
-// ];
-
-const mockRegisteredEvents = [
-  {
-    id: "201",
-    title: "UX/UI Design Summit",
-    date: "2023-11-18",
-    location: "Chicago, IL",
-    ticketType: "VIP Pass",
-    organizer: "Design Academy",
-  },
-  {
-    id: "202",
-    title: "Annual Developer Conference",
-    date: "2023-12-10",
-    location: "Seattle, WA",
-    ticketType: "General Admission",
-    organizer: "TechConnect",
-  },
-];
-
 const categoryOptions = [
   {
     id: "technology",
@@ -155,8 +105,21 @@ const Dashboard = () => {
   const { user, loading: isLoading } = useAuthUser();
   const filtered = events?.filter((event) => event.organizeruid === user.uid);
   const mockUserEvents = events
-    .filter((event) => event.registeredUsers)
-    .filter((event) => event.registeredUsers.includes(user.uid));
+    .filter((event) => event?.registeredUsers)
+    .filter((event) => event?.registeredUsers?.includes(user?.uid));
+
+  const totalAttendees = events?.reduce(
+    (sum, event) => sum + (event?.attendees || 0),
+    0
+  );
+
+  const totalRevenue = events?.reduce((sum, event) => {
+    const registeredUsers = event.registeredUsers
+      ? event.registeredUsers.length
+      : 0;
+    const ticketPrice = Number(event?.extendedEventDetails?.ticketPrice) || 0;
+    return sum + registeredUsers * ticketPrice;
+  }, 0);
 
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -238,8 +201,6 @@ const Dashboard = () => {
         location: newEvent.location,
       },
     };
-
-    console.log("New Event Object:", eventObject);
 
     toast.success("Event creating!");
     handleAddEvent(eventObject);
@@ -484,8 +445,10 @@ const Dashboard = () => {
           <Separator />
 
           <StatsCards
-            userEventsCount={mockUserEvents.length}
-            registeredEventsCount={mockRegisteredEvents.length}
+            userEventsCount={filtered.length}
+            registeredEventsCount={mockUserEvents.length}
+            totalAttendees={totalAttendees}
+            totalRevenue={totalRevenue}
           />
 
           <Tabs

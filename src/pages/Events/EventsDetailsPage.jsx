@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Button } from "../../components/ui/Button";
-import { Mail, User } from "lucide-react";
+import { BookHeartIcon, Mail, User } from "lucide-react";
 
 import {
   Dialog,
@@ -33,6 +33,8 @@ const EventDetails = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+
 
   if (!event) {
     return <EventNotFound />;
@@ -69,7 +71,7 @@ const EventDetails = () => {
                   Your Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <User className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="name"
                     placeholder="Enter your full name"
@@ -87,10 +89,10 @@ const EventDetails = () => {
                   htmlFor="email"
                   className="text-sm font-medium leading-none"
                 >
-                  Email Address
+                  Email
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
@@ -106,12 +108,38 @@ const EventDetails = () => {
 
               <div className="space-y-2">
                 <label
+                  htmlFor="subject"
+                  className="text-sm font-medium leading-none"
+                >
+                  Subject
+                </label>
+                <div className="relative">
+                  <BookHeartIcon className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="subject"
+                    type="text"
+                    placeholder="Tell the agenda"
+                    className="pl-10"
+                    value={userInfo.subject}
+                    onChange={(e) =>
+                      setUserInfo({ ...userInfo, subject: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label
                   htmlFor="message"
                   className="text-sm font-medium leading-none"
                 >
-                  Message (Optional)
+                  Message
                 </label>
                 <Textarea
+                  value={userInfo.message}
+                  onChange={(e) =>
+                    setUserInfo({ ...userInfo, message: e.target.value })
+                  }
                   id="message"
                   placeholder="Any specific questions for the organizer?"
                   className="min-h-[100px]"

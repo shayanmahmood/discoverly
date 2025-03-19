@@ -137,48 +137,192 @@ export const SponsorItems = ({
   );
 };
 
+// export const AdditionalImages = ({
+//   additionalImages = [], // Can be URLs or File objects
+//   addAdditionalImage,
+//   removeAdditionalImage,
+// }) => {
+//   const fileInputRef = useRef(null);
+//   const [localFiles, setLocalFiles] = useState([]);
+//   const [imagePreviews, setImagePreviews] = useState([]);
+
+//   // 🔹 Convert File objects to Data URLs when additionalImages changes
+//   useEffect(() => {
+//     const processImages = async () => {
+//       const validImages = [];
+
+//       for (const item of additionalImages) {
+//         if (typeof item === "string") {
+//           validImages.push(item); // Keep URLs as they are
+//         } else if (item instanceof File) {
+//           const dataUrl = await readFileAsDataURL(item);
+//           validImages.push(dataUrl);
+//         }
+//       }
+
+//       setImagePreviews(validImages);
+//     };
+
+//     processImages();
+//   }, [additionalImages]);
+
+//   // 🔹 Read a File as Data URL (for preview)
+//   const readFileAsDataURL = (file) => {
+//     return new Promise((resolve) => {
+//       const reader = new FileReader();
+//       reader.onload = (e) => resolve(e.target.result);
+//       reader.readAsDataURL(file);
+//     });
+//   };
+
+//   const handleFileChange = (event) => {
+//     const files = Array.from(event.target.files);
+//     if (files.length === 0) return;
+
+//     const newFiles = [...localFiles, ...files];
+//     setLocalFiles(newFiles);
+//     addAdditionalImage(newFiles); // Send new files to parent component
+
+//     // Convert files to previews
+//     Promise.all(files.map(readFileAsDataURL)).then((imageUrls) => {
+//       setImagePreviews((prev) => [...prev, ...imageUrls]);
+//     });
+//   };
+
+//   return (
+//     <div className="space-y-6 p-4 border rounded-lg bg-white shadow-sm">
+//       {/* Hidden File Input */}
+//       <input
+//         type="file"
+//         accept="image/*"
+//         multiple
+//         className="hidden"
+//         ref={fileInputRef}
+//         onChange={handleFileChange}
+//       />
+
+//       {/* Uploaded Images Grid */}
+//       {console.log("imagePreviews:", imagePreviews)}
+//       {imagePreviews.length > 0 ? (
+//         <>
+//           <div className="flex gap-3 flex-wrap">
+//             {imagePreviews.map((image, index) =>
+//               image ? (
+//                 <div key={index} className="relative group">
+//                   <img
+//                     src={image}
+//                     alt={`Uploaded image ${index + 1}`}
+//                     className="h-24 w-24 object-cover rounded-md border shadow-sm"
+//                     onError={(e) => {
+//                       e.target.onerror = null;
+//                       e.target.src = "/placeholder.svg";
+//                     }}
+//                   />
+//                   {/* Delete Button */}
+//                   <button
+//                     onClick={() => {
+//                       setImagePreviews((prev) =>
+//                         prev.filter((_, i) => i !== index)
+//                       );
+//                       setLocalFiles((prev) =>
+//                         prev.filter((_, i) => i !== index)
+//                       );
+//                       removeAdditionalImage(index);
+//                     }}
+//                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center shadow-md opacity-100 transition"
+//                   >
+//                     <X className="h-4 w-4" />
+//                   </button>
+//                 </div>
+//               ) : null
+//             )}
+//           </div>
+
+//           {/* Upload Another Image */}
+//           <Button
+//             type="button"
+//             variant="outline"
+//             onClick={() => fileInputRef.current?.click()}
+//             className="w-full py-4 flex items-center justify-center border-dashed border-2 rounded-lg hover:bg-gray-100 transition-all"
+//           >
+//             <Plus className="h-6 w-6 mr-2 text-gray-500" />
+//             <span className="text-sm font-medium">Upload Another Image</span>
+//           </Button>
+//         </>
+//       ) : (
+//         // Show Upload Button Only If No Images Exist
+//         <Button
+//           type="button"
+//           variant="outline"
+//           onClick={() => fileInputRef.current?.click()}
+//           className="w-full h-60 flex flex-col items-center justify-center border-dashed border-2 border-gray-300 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all duration-200 focus:ring-2 focus:ring-ring focus:ring-offset-2"
+//         >
+//           <FileUp
+//             size={56}
+//             className="text-gray-500 !h-10 !w-10 group-hover:text-gray-700 transition-colors"
+//           />
+//           <span className="text-lg font-semibold text-gray-700 mt-4">
+//             Click to Upload Image
+//           </span>
+//           <span className="text-sm text-gray-500 mt-2">
+//             PNG, JPG, or GIF up to 10MB
+//           </span>
+//         </Button>
+//       )}
+//     </div>
+//   );
+// };
+
 export const AdditionalImages = ({
-  additionalImages = [], // Already uploaded images
+  additionalImages = [], // Can be URLs or File objects
   addAdditionalImage,
   removeAdditionalImage,
 }) => {
   const fileInputRef = useRef(null);
   const [localFiles, setLocalFiles] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState(additionalImages || []);
+  const [imagePreviews, setImagePreviews] = useState([]);
 
+  // 🔹 Process URLs & Files on additionalImages change
   useEffect(() => {
-    // Update previews when additionalImages prop changes (e.g., when editing an event)
-    setImagePreviews(additionalImages);
+    const processImages = async () => {
+      const validImages = [];
+
+      for (const item of additionalImages) {
+        if (typeof item === "string") {
+          validImages.push(item); // Keep URLs as they are
+        } else if (item instanceof File) {
+          const dataUrl = await readFileAsDataURL(item);
+          validImages.push(dataUrl);
+        }
+      }
+
+      setImagePreviews(validImages);
+    };
+
+    processImages();
   }, [additionalImages]);
+
+  // 🔹 Read File as Data URL
+  const readFileAsDataURL = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(file);
+    });
+  };
 
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
     if (files.length === 0) return;
 
-    const newImages = [];
-    const newFiles = [];
-    let loadedCount = 0;
+    // 🔹 Preserve existing URLs & new files when updating parent state
+    const updatedFiles = [...localFiles, ...files];
+    setLocalFiles(updatedFiles);
+    addAdditionalImage([...additionalImages, ...files]); // Keep URLs & Add new files
 
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target.result.trim();
-        if (imageUrl !== "" && imageUrl !== " ") {
-          newImages.push(imageUrl);
-          newFiles.push(file);
-        }
-
-        loadedCount++;
-        if (loadedCount === files.length) {
-          setImagePreviews((prev) => [...prev, ...newImages]);
-          setLocalFiles((prev) => {
-            const updatedFiles = [...prev, ...newFiles];
-            addAdditionalImage([...additionalImages, ...updatedFiles]); // Send all files to parent state
-            return updatedFiles;
-          });
-        }
-      };
-      reader.readAsDataURL(file);
+    // Convert files to previews
+    Promise.all(files.map(readFileAsDataURL)).then((imageUrls) => {
+      setImagePreviews((prev) => [...prev, ...imageUrls]);
     });
   };
 
@@ -194,12 +338,13 @@ export const AdditionalImages = ({
         onChange={handleFileChange}
       />
 
-      {/* Uploaded Images Grid (Show this first if images exist) */}
+      {/* Uploaded Images Grid */}
+      {console.log("imagePreviews:", imagePreviews)}
       {imagePreviews.length > 0 ? (
         <>
           <div className="flex gap-3 flex-wrap">
             {imagePreviews.map((image, index) =>
-              image.trim() !== "" ? (
+              image ? (
                 <div key={index} className="relative group">
                   <img
                     src={image}
@@ -213,13 +358,16 @@ export const AdditionalImages = ({
                   {/* Delete Button */}
                   <button
                     onClick={() => {
+                      const updatedImages = additionalImages.filter(
+                        (_, i) => i !== index
+                      );
                       setImagePreviews((prev) =>
                         prev.filter((_, i) => i !== index)
                       );
                       setLocalFiles((prev) =>
                         prev.filter((_, i) => i !== index)
                       );
-                      removeAdditionalImage(index);
+                      removeAdditionalImage(updatedImages); // Pass updated array to parent
                     }}
                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center shadow-md opacity-100 transition"
                   >
@@ -264,6 +412,8 @@ export const AdditionalImages = ({
     </div>
   );
 };
+
+
 
 export const LineupItems = ({
   lineup,

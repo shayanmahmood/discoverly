@@ -1,4 +1,4 @@
-import { Check, Mail, Share2, TicketIcon } from "lucide-react";
+import { Check, Mail, Share2, TicketCheckIcon, TicketIcon } from "lucide-react";
 import { useEventDetails } from "../../Contexts/Events/EventDetailsProvider";
 import { Button } from "../ui/Button";
 import EventDetailSponsors from "./EventDetailSponsors";
@@ -15,6 +15,8 @@ function EventDetailSection() {
     handleRegister,
     isCopy,
     handleShare,
+    isRegister,
+    isMessaged,
   } = useEventDetails();
   return (
     <div className="container mx-auto px-4 py-12">
@@ -47,11 +49,11 @@ function EventDetailSection() {
             <p className="text-muted-foreground mb-4">
               {extendedDetails?.organizer || "Unknown organizer"}
             </p>
-
             <Button
               variant="outline"
               className="w-full gap-2"
               onClick={handleGetInfo}
+              disabled={isMessaged}
             >
               <Mail className="h-4 w-4" />
               Get Event Info from Organizer
@@ -89,9 +91,23 @@ function EventDetailSection() {
                 Available
               </Badge>
             </div>
-            <Button className="w-full gap-2" onClick={handleRegister}>
+            <Button
+              className="w-full gap-2"
+              onClick={handleRegister}
+              disabled={isRegister}
+            >
               <TicketIcon className="h-4 w-4" />
-              Register Now
+              {isRegister ? (
+                <>
+                  <TicketCheckIcon className="h-5 w-5" />
+                  Registered
+                </>
+              ) : (
+                <>
+                  <TicketIcon className="h-5 w-5" />
+                  Register Now
+                </>
+              )}
             </Button>
           </div>
 

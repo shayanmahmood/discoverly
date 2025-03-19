@@ -27,6 +27,7 @@ import Dashboard from "./pages/Dashboard";
 import EmailVerification from "./pages/Auth/EmailVerification";
 import Welcome from "./pages/Auth/Welcome";
 import AuthHandler from "./pages/Auth/AuthHandler";
+import NotFound from "./pages/Home/PageNotFound";
 
 function App() {
   const RedirectToDefaultTab = () => {
@@ -66,6 +67,7 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<EmailVerification />} />
           <Route path="/auth" element={<AuthHandler />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

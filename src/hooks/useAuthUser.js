@@ -14,13 +14,20 @@ import {
   signUp,
   updateUserPassword,
   updateUserProfile,
+  getUserMessages,
+  sendMessage,
+  registerUserForMessage,
+  markMessageAsUnread,
+  sendReply,
 } from "../api/AuthApi";
 import { useNavigate } from "react-router-dom";
 import { fetchUser } from "../api/FetchingData";
+import { auth } from "../firebase/firebase";
 
 const useAuth = () => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsloading] = useState(false);
+  const [isMessage, setIsMessage] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (email, password) => {
@@ -153,6 +160,20 @@ const useAuth = () => {
     }
   };
 
+  const handleMessageRegister = async (eventId, userId) => {
+    setIsloading(true);
+    try {
+      const event = await registerUserForMessage(eventId, userId);
+      toast.success("User has been added");
+      navigate("/events");
+      return event;
+    } catch (err) {
+      toast.error(`Error having during added event ${err.message}`);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
   const handleAddEvent = async (eventData) => {
     setIsloading(true);
     try {
@@ -193,13 +214,69 @@ const useAuth = () => {
     }
   };
 
-  const handleCreateCollection = async (userId) => {
+  const handleCreateCollection = async (userId, isMessage) => {
     setIsloading(true);
     try {
-      await createMessagesCollection(userId);
+      await createMessagesCollection(userId, isMessage);
       toast.success("Messaging has been enabled");
     } catch (err) {
       toast.error(`Error having during enabling messaging ${err.message}`);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
+  const getMessages = async () => {
+    setIsloading(true);
+    try {
+      const user = await getUserById(auth.currentUser.uid);
+      const isMessage = user?.messaging;
+
+      if (isMessage !== true) {
+        setIsMessage(true);
+        return toast.error("Please enable Messaging first");
+      }
+
+      const messages = await getUserMessages(); // One-time fetch if needed
+      return messages;
+    } catch (err) {
+      toast.error(`Error while fetching messages: ${err.message}`);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
+  const sendUserMessage = async (receiverId, messageData) => {
+    setIsloading(true);
+    try {
+      await sendMessage(receiverId, messageData);
+      toast.success("Message has been send");
+    } catch (err) {
+      toast.error(`Error having during getting messaging ${err.message}`);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
+  const unreadMessage = async (receiverId, messageId) => {
+    setIsloading(true);
+    try {
+      await markMessageAsUnread(receiverId, messageId);
+      // toast.success("Message has been send");
+    } catch (err) {
+      toast.error(`Error having during getting messaging ${err.message}`);
+    } finally {
+      setIsloading(false);
+    }
+  };
+
+  const replyMessage = async (receiverId, messageId, reply) => {
+    setIsloading(true);
+    try {
+      await sendReply(receiverId, messageId, reply);
+      // toast.success("Message has been send");
+    } catch (err) {
+      toast.error(`Error having during getting messaging ${err.message}`);
     } finally {
       setIsloading(false);
     }
@@ -216,15 +293,20 @@ const useAuth = () => {
     handleForgotPassword,
     handleResendEmail,
     handleDelEvent,
-
+    sendUserMessage,
+    replyMessage,
+    isMessage,
     handleAddEvent,
     handleRegisterUser,
     handleCreateCollection,
     handleTheEditEvent,
+    handleMessageRegister,
+    unreadMessage,
 
     getUserById,
     updateUser,
     updatePassword,
+    getMessages,
   };
 };
 

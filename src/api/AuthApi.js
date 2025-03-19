@@ -20,8 +20,10 @@ import {
   doc,
   getDoc,
   getDocs,
+  onSnapshot,
   serverTimestamp,
   setDoc,
+  Timestamp,
   updateDoc,
 } from "firebase/firestore";
 import { EmailAuthProvider } from "firebase/auth/web-extension";
@@ -88,6 +90,7 @@ export const login = async (email, password) => {
 
 export const signUp = async (email, password, name, photo, phone, bio) => {
   try {
+    console.log(photo);
     // Create user in Firebase Authentication
     const userCredential = await createUserWithEmailAndPassword(
       auth,
@@ -349,6 +352,33 @@ export const registerUserForEvent = async (eventId, userId) => {
 };
 
 /**
+ * Register a user for an event
+ * @param {string} eventId - ID of the event
+ * @param {string} userId - ID of the user
+ */
+export const registerUserForMessage = async (eventId, userId) => {
+  const eventRef = doc(db, "Events", eventId);
+
+  try {
+    // First, check if the document exists
+    const docSnap = await getDoc(eventRef);
+
+    if (!docSnap.exists()) {
+      throw new Error("Event does not exist!");
+    }
+
+    // If document exists, update it
+    await updateDoc(eventRef, {
+      messageUsers: arrayUnion(userId),
+    });
+
+    console.log("User added successfully!");
+  } catch (error) {
+    console.error("Error added for event: ", error);
+  }
+};
+
+/**
  * Get events a user has registered for
  * @param {string} userId - ID of the user
  * @returns {Array} - Array of events the user registered for
@@ -415,6 +445,7 @@ export async function addEvent(eventData) {
 }
 
 export async function editEvent(eventId, eventData) {
+  console.log(eventData);
   try {
     console.log("Updating event...");
 
@@ -463,7 +494,7 @@ export async function editEvent(eventId, eventData) {
       price: eventData.extendedEventDetails.ticketPrice,
       updatedAt: new Date(),
     };
-
+    console.log(updatedData);
     // Update event in Firestore
     await updateDoc(doc(db, "Events", eventId), updatedData);
     console.log("Event updated successfully!");
@@ -473,29 +504,31 @@ export async function editEvent(eventId, eventData) {
   }
 }
 
-export const createMessagesCollection = async (userId) => {
+export const createMessagesCollection = async (userId, isMessage) => {
   try {
     const userRef = doc(db, "Users", userId);
     const messagesRef = collection(userRef, "messages");
 
-    await updateDoc(userRef, { messaging: true });
+    await updateDoc(userRef, { messaging: isMessage });
 
     // Firestore automatically creates the subcollection when a document is added
-    await setDoc(doc(messagesRef), {
-      senderId: "system",
-      sender: {
-        name: "",
-        email: "",
-        avatar: "",
-      },
-      eventName: "",
-      eventId: "",
-      receiverId: userId,
-      subject: "Welcome Message",
-      message: "This is your first message!",
-      date: new Date(),
-      unread: true,
-    });
+    isMessage &&
+      (await setDoc(doc(messagesRef), {
+        senderId: "",
+        sender: {
+          name: "",
+          email: "",
+          avatar: "",
+        },
+        event: "",
+        eventId: "",
+        receiverId: userId,
+        preview: "",
+        subject: "Welcome Message",
+        message: "This is your first message!",
+        date: new Date(),
+        unread: true,
+      }));
 
     console.log("Messages collection created successfully!");
   } catch (error) {
@@ -515,3 +548,288 @@ export async function deleteDocument(collectionName, docId) {
     return false;
   }
 }
+
+export const getUserMessages = (callback) => {
+  try {
+    const messagesRef = collection(
+      db,
+      `Users/${auth.currentUser.uid}/messages`
+    );
+
+    return onSnapshot(messagesRef, (snapshot) => {
+      const messages = snapshot.docs.map((doc) => ({
+        docId: doc.id,
+        ...doc.data(),
+      }));
+      console.log(messages);
+      callback(messages); // Pass data to the callback function
+    });
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+  }
+};
+
+export const sendMessage = async (receiverId, messageData) => {
+  try {
+    const messagesRef = collection(db, `Users/${receiverId}/messages`);
+
+    // Add a timestamp and send message to Firestore
+    await addDoc(messagesRef, {
+      ...messageData,
+      date: serverTimestamp(), // Firestore-generated timestamp
+      unread: true, // Mark as unread by default
+    });
+
+    console.log("Message sent successfully!");
+    return true;
+  } catch (error) {
+    console.error("Error sending message:", error);
+    return false;
+  }
+};
+
+export const markMessageAsUnread = async (receiverId, messageId) => {
+  try {
+    const messageRef = doc(db, `Users/${receiverId}/messages/${messageId}`);
+
+    // Update the 'unread' field to true
+    await updateDoc(messageRef, {
+      unread: false,
+    });
+
+    console.log("Message marked as unread!");
+    return true;
+  } catch (error) {
+    console.error("Error marking message as unread:", error);
+    return false;
+  }
+};
+
+// export const sendReply = async (receiverId, originalMessageId, replyData) => {
+//   try {
+//     const messageRef = doc(
+//       db,
+//       `Users/${receiverId}/messages/${originalMessageId}`
+//     );
+
+//     // Get a Firestore timestamp separately
+//     const timestamp = new Date(); // or use serverTimestamp() in an update
+
+//     // Append reply to the 'replies' array in Firestore
+//     await updateDoc(messageRef, {
+//       replies: arrayUnion({
+//         replyData,
+//         date: timestamp, // Use JS Date instead of serverTimestamp()
+//         unread: true, // Mark reply as unread
+//       }),
+//     });
+
+//     console.log("Reply added successfully!");
+//     return true;
+//   } catch (error) {
+//     console.error("Error adding reply:", error);
+//     return false;
+//   }
+// };
+
+// export const sendReply = async (receiverId, originalMessageId, replyData) => {
+//   try {
+//     // **Fetch the Original Message**
+//     const messageRef = doc(db, `Users/${receiverId}/messages/${originalMessageId}`);
+//     const messageSnap = await getDoc(messageRef);
+
+//     if (!messageSnap.exists()) {
+//       console.error("Original message not found!");
+//       return false;
+//     }
+
+//     const messageData = messageSnap.data();
+//     const senderId = messageData.senderId; // ✅ Get senderId from original message
+
+//     // **Fetch Sender's Info**
+//     const senderRef = doc(db, `Users/${senderId}`);
+//     const senderSnap = await getDoc(senderRef);
+
+//     if (!senderSnap.exists()) {
+//       console.error("Sender does not exist!");
+//       return false;
+//     }
+
+//     const senderData = senderSnap.data();
+//     let senderMessaging = senderData.messaging ?? false;
+
+//     // **Fetch Receiver's Info**
+//     const receiverRef = doc(db, `Users/${receiverId}`);
+//     const receiverSnap = await getDoc(receiverRef);
+
+//     if (!receiverSnap.exists()) {
+//       console.error("Receiver does not exist!");
+//       return false;
+//     }
+
+//     const receiverData = receiverSnap.data();
+
+//     // **Enable messaging for sender if needed**
+//     if (!senderMessaging) {
+//       console.log("Enabling messaging for sender...");
+//       await updateDoc(senderRef, { messaging: true });
+//     }
+
+//     // **1. Add Reply to Receiver's Original Message**
+//     const replyObject = {
+//       replyData,
+//       unread: true,
+//       date: Timestamp.fromDate(new Date()), // ✅ Firestore Timestamp correctly set
+//     };
+
+//     await updateDoc(messageRef, {
+//       replies: arrayUnion(replyObject),
+//     });
+
+//     console.log("Reply added to receiver's message!");
+
+//     // **2. Ensure "messages" collection exists for sender before adding new message**
+//     const senderMessagesRef = collection(db, `Users/${senderId}/messages`);
+//     const newSenderMessageRef = doc(senderMessagesRef); // Auto-generated ID
+
+//     const newMessageData = {
+//       senderId: receiverId, // ✅ Receiver becomes the sender now
+//       sender: {
+//         name: receiverData.name || "Unknown",
+//         email: receiverData.email || "",
+//         avatar: receiverData.avatar || "",
+//       },
+//       event: messageData.event,
+//       eventId: messageData.eventId,
+//       receiverId: senderId,
+//       preview: replyData.substring(0, 100), // ✅ Short preview of reply
+//       subject: `Re: ${messageData.subject}`, // ✅ Indicate it's a reply
+//       message: replyData, // ✅ Full reply text
+//       date: Timestamp.fromDate(new Date()), // ✅ Firestore Timestamp correctly set
+//       unread: true,
+//     };
+
+//     // **If no messages exist, this automatically creates the collection**
+//     await setDoc(newSenderMessageRef, newMessageData);
+//     console.log("New message created in sender's inbox!");
+
+//     return true;
+//   } catch (error) {
+//     console.error("Error adding reply:", error);
+//     return false;
+//   }
+// };
+
+export const sendReply = async (receiverId, originalMessageId, replyData) => {
+  try {
+    // **Fetch the Original Message from Receiver's Inbox**
+    const receiverMessageRef = doc(
+      db,
+      `Users/${receiverId}/messages/${originalMessageId}`
+    );
+    const receiverMessageSnap = await getDoc(receiverMessageRef);
+
+    if (!receiverMessageSnap.exists()) {
+      console.error("Original message not found in receiver's inbox!");
+      return false;
+    }
+
+    const messageData = receiverMessageSnap.data();
+    const senderId = messageData.senderId;
+
+    // **Fetch Sender Info**
+    const senderRef = doc(db, `Users/${senderId}`);
+    const senderSnap = await getDoc(senderRef);
+
+    if (!senderSnap.exists()) {
+      console.error("Sender does not exist!");
+      return false;
+    }
+
+    const senderData = senderSnap.data();
+    let senderMessaging = senderData.messaging ?? false;
+
+    // **Enable Messaging for Sender if Not Enabled**
+    if (!senderMessaging) {
+      console.log("Enabling messaging for sender...");
+      await updateDoc(senderRef, { messaging: true });
+      senderMessaging = true;
+    }
+
+    // **Find the Same Message in Sender's Inbox**
+    let senderMessageId = null;
+    const senderMessagesRef = collection(db, `Users/${senderId}/messages`);
+    const senderMessagesSnap = await getDocs(senderMessagesRef);
+
+    senderMessagesSnap.forEach((doc) => {
+      if (
+        doc.data().eventId === messageData.eventId &&
+        doc.data().receiverId === senderId
+      ) {
+        senderMessageId = doc.id;
+      }
+    });
+
+    console.log(messageData);
+
+    // **If Sender's Message Collection Doesn't Exist, Create One**
+    if (!senderMessageId) {
+      console.log("Creating new message in sender's inbox...");
+
+      const newSenderMessageRef = doc(senderMessagesRef); // Auto-generated ID
+
+      const newMessageData = {
+        senderId: receiverId, // Receiver becomes the sender now
+        sender: {
+          name: messageData.sender.name || "Unknown",
+          email: messageData.sender.email || "",
+          avatar: messageData.sender.avatar || "",
+        },
+        event: messageData.event,
+        eventId: messageData.eventId,
+        receiverId: senderId,
+        preview: replyData.substring(0, 100),
+        subject: `Reply of ${messageData.message}: ${messageData.subject}`,
+        message: replyData,
+        date: Timestamp.fromDate(new Date()),
+        unread: true,
+        replies: [],
+      };
+
+      await setDoc(newSenderMessageRef, newMessageData);
+      senderMessageId = newSenderMessageRef.id;
+      console.log("New message created for sender!");
+    }
+
+    const senderMessageRef = doc(
+      db,
+      `Users/${senderId}/messages/${senderMessageId}`
+    );
+
+    // **Create Reply Object**
+    const replyObject = {
+      replyData,
+      unread: true,
+      date: Timestamp.fromDate(new Date()),
+    };
+
+    // **1. Update Receiver's Message Thread**
+    await updateDoc(receiverMessageRef, {
+      replies: arrayUnion(replyObject),
+    });
+
+    console.log("Reply added to receiver's message!");
+
+    // **2. Update Sender's Message Thread**
+    await updateDoc(senderMessageRef, {
+      replies: arrayUnion(replyObject),
+    });
+
+    console.log("Reply added to sender's message!");
+
+    return true;
+  } catch (error) {
+    console.error("Error adding reply:", error);
+    return false;
+  }
+};

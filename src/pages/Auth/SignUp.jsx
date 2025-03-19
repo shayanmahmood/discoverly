@@ -26,10 +26,16 @@ const Signup = () => {
   const { handleRegister, isLoading: isLoadingApi } = useAuth();
 
   const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setPhoto(file);
+    const files = e.target.files; // Extract files safely
+
+    if (!files || files.length === 0) {
+      console.error("No file selected");
+      return; // Exit if no file is selected
     }
+
+    const file = files[0]; // Get the first file
+    setPhoto(file);
+    console.log("Selected file:", file);
   };
 
   const handleSubmit = (e) => {

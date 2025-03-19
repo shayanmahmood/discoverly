@@ -22,17 +22,22 @@ import {
   DropdownMenuTrigger,
 } from "./ui/DropDown-Menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/Avatar";
+import useAuth from "../hooks/useAuthUser";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { user, loading } = useAuthUser();
+  const { handleLogout } = useAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(user ? true : false);
   const isDetailPage = location.pathname.includes("/event/");
 
   // This is just for demo purposes - in a real app you would use an auth system
-  const toggleLogin = () => setIsLoggedIn(!isLoggedIn);
+  const toggleLogin = () => {
+    setIsLoggedIn(!isLoggedIn);
+    handleLogout();
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -75,24 +80,18 @@ export const Navbar = () => {
                 Browse Events
               </Button>
             </Link>
-            <Button
-              variant="ghost"
-              className={`text-foreground/80 hover:text-foreground ${
-                !isScrolled &&
-                ` ${isDetailPage && "!text-white hover:!text-blue-400"}`
-              }`}
-            >
-              Create Event
-            </Button>
-            <Button
-              variant="ghost"
-              className={`text-foreground/80 hover:text-foreground ${
-                !isScrolled &&
-                ` ${isDetailPage && "!text-white hover:!text-blue-400"}`
-              }`}
-            >
-              Blog
-            </Button>
+            <Link to="/dashboard?tab=myEvents">
+              <Button
+                variant="ghost"
+                className={`text-foreground/80 hover:text-foreground ${
+                  !isScrolled &&
+                  ` ${isDetailPage && "!text-white hover:!text-blue-400"}`
+                }`}
+              >
+                Create Event
+              </Button>
+            </Link>
+
             <Link to="/Contact">
               <Button
                 variant="ghost"
@@ -102,6 +101,18 @@ export const Navbar = () => {
                 }`}
               >
                 Contact Us
+              </Button>
+            </Link>
+
+            <Link to="/dashboard?tab=settings">
+              <Button
+                variant="ghost"
+                className={`text-foreground/80 hover:text-foreground ${
+                  !isScrolled &&
+                  ` ${isDetailPage && "!text-white hover:!text-blue-400"}`
+                }`}
+              >
+                Settings
               </Button>
             </Link>
           </nav>

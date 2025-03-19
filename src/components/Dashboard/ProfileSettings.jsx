@@ -58,7 +58,6 @@ const ProfileSettings = () => {
 
   useEffect(() => {
     if (user) {
-      console.log(user);
       setProfileData((prev) => ({
         ...prev,
         name: user.name || "",
@@ -79,11 +78,22 @@ const ProfileSettings = () => {
       }));
     }
   }, [user, passwordData]);
-
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
     enableMessaging: false,
   });
+
+  useEffect(
+    function () {
+      if (user?.messaging === true) {
+        setNotificationSettings({
+          ...notificationSettings,
+          enableMessaging: user.messaging,
+        });
+      }
+    },
+    [user?.messaging]
+  );
 
   const validateProfileForm = () => {
     const newErrors = {};
@@ -176,9 +186,10 @@ const ProfileSettings = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (notificationSettings.enableMessaging === true) {
-      handleCreateCollection(auth.currentUser.uid);
-    }
+    handleCreateCollection(
+      auth.currentUser.uid,
+      notificationSettings.enableMessaging
+    );
 
     setIsSubmitting(false);
   };

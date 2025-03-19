@@ -1,12 +1,19 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react/react-in-jsx-scope */
-import { createContext, useContext, useEffect, useReducer } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+} from "react";
 import { useEvents } from "../EventProvider";
 import { useParams } from "react-router-dom";
 import { toast } from "../../hooks/use-toast";
 import useAuth from "../../hooks/useAuthUser";
 import { auth } from "../../firebase/firebase";
 import { PageLoader } from "../../components/ui/Loader";
+import { format } from "date-fns";
 
 const EventsDetailsContext = createContext();
 
@@ -16,10 +23,13 @@ const initialState = {
   showInfoDialog: false,
   isRegister: false,
   isCopy: false,
+  isMessaged: false,
   saveCalendar: false,
   userInfo: {
     name: "",
+    subject: "",
     email: "",
+    message: "",
   },
 };
 
@@ -33,6 +43,8 @@ function reducer(state, action) {
       return { ...state, isCopy: true };
     case "setRegister":
       return { ...state, isRegister: true };
+    case "setMessaged":
+      return { ...state, isMessaged: true };
     case "openDialog":
       return { ...state, showInfoDialog: true };
     case "closeDialog":
@@ -68,12 +80,18 @@ const EventDetailsProvider = ({ children }) => {
       saveCalendar,
       userInfo,
       showInfoDialog,
+      isMessaged,
     },
     dispatch,
   ] = useReducer(reducer, initialState);
   const { allEvents } = useEvents();
   const { id } = useParams();
-  const { handleRegisterUser, isLoading } = useAuth();
+  const {
+    handleRegisterUser,
+    isLoading,
+    sendUserMessage,
+    handleMessageRegister,
+  } = useAuth();
 
   useEffect(() => {
     if (id) {
@@ -89,6 +107,32 @@ const EventDetailsProvider = ({ children }) => {
       }
     }
   }, [id, allEvents]);
+
+  const memoizedRegisteredUsers = useMemo(() => {
+    return JSON.stringify(event?.registeredUsers);
+  }, [event?.registeredUsers]);
+
+  useEffect(() => {
+    if (memoizedRegisteredUsers) {
+      const Registered = JSON.parse(memoizedRegisteredUsers).includes(
+        auth.currentUser.uid
+      );
+      if (Registered) dispatch({ type: "setRegister" });
+    }
+  }, [memoizedRegisteredUsers]);
+
+  const memoizedMessagedUsers = useMemo(() => {
+    return JSON.stringify(event?.messageUsers);
+  }, [event?.messageUsers]);
+
+  useEffect(() => {
+    if (memoizedMessagedUsers) {
+      const Registered = JSON.parse(memoizedMessagedUsers).includes(
+        auth.currentUser.uid
+      );
+      if (Registered) dispatch({ type: "setMessaged" });
+    }
+  }, [memoizedMessagedUsers]);
 
   const handleSetEvent = (data) => {
     dispatch({ type: "setEvent", payload: data });
@@ -117,19 +161,33 @@ const EventDetailsProvider = ({ children }) => {
     dispatch({ type: "openDialog" });
   };
 
+  const date = format(new Date(), "dd MMM yyyy");
+
   const handleInfoSubmit = (e) => {
     e.preventDefault();
 
-    if (!userInfo.name.trim() || !userInfo.email.trim()) {
-      toast({
-        title: "Missing information",
-        description: "Please provide both your name and email",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
-
+    const messageToSend = {
+      id: crypto.randomUUID(),
+      preview:
+        userInfo.message.length > 30
+          ? userInfo.message.substring(0, 30) + "..."
+          : userInfo.message,
+      receiverId: event.organizeruid,
+      event: event.title,
+      senderId: auth.currentUser.uid,
+      date: date.toString(),
+      eventId: event.id,
+      message: userInfo.message,
+      sender: {
+        name: auth.currentUser.displayName,
+        email: userInfo.email,
+        avatar: auth.currentUser.photoURL,
+      },
+      unread: true,
+      subject: userInfo.message,
+    };
+    sendUserMessage(messageToSend.receiverId, messageToSend);
+    handleMessageRegister(event.docId, auth.currentUser.uid);
     toast({
       title: "Request sent",
       description: `Event information will be sent to ${userInfo.email}`,
@@ -196,6 +254,7 @@ const EventDetailsProvider = ({ children }) => {
         handleSaveToCalendar,
         handleInfoDialog,
         handleUserInfo,
+        isMessaged,
       }}
     >
       {children}

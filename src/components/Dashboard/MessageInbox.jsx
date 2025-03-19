@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card } from "../ui/Card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/Tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/Avatar";
@@ -35,71 +35,45 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/DropDown-Menu";
-
-// Sample message data
-const messageData = [
-  {
-    id: 1,
-    sender: {
-      name: "Alice Johnson",
-      email: "alice@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    },
-    subject: "Question about Tech Conference",
-    event: "Tech Conference 2023",
-    eventId: "101",
-    preview:
-      "Hi there, I had a question about the upcoming tech conference. Will there be...",
-    message:
-      "Hi there,\n\nI had a question about the upcoming tech conference. Will there be any workshops on artificial intelligence? I'm particularly interested in machine learning applications.\n\nAlso, are there any discounts for students?\n\nThanks,\nAlice",
-    date: "2023-11-05",
-    unread: true,
-  },
-  {
-    id: 2,
-    sender: {
-      name: "Mark Wilson",
-      email: "mark@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    },
-    subject: "Marketing Workshop Details",
-    event: "Marketing Workshop",
-    eventId: "102",
-    preview:
-      "Hello, I registered for the marketing workshop next week and wanted to confirm...",
-    message:
-      "Hello,\n\nI registered for the marketing workshop next week and wanted to confirm the exact location. The confirmation email mentioned Room B, but the website says Room C.\n\nCould you please clarify?\n\nBest regards,\nMark",
-    date: "2023-11-03",
-    unread: false,
-  },
-  {
-    id: 3,
-    sender: {
-      name: "Sarah Chen",
-      email: "sarah@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    },
-    subject: "Speaking Opportunity",
-    event: "Product Launch Party",
-    eventId: "103",
-    preview:
-      "I'm interested in speaking at your product launch event. I have experience...",
-    message:
-      "I'm interested in speaking at your product launch event. I have experience in product marketing and would love to share insights about launching successful products in the current market.\n\nI've attached my portfolio for your review.\n\nLooking forward to hearing from you,\nSarah",
-    date: "2023-10-30",
-    unread: false,
-  },
-];
+import useAuth from "../../hooks/useAuthUser";
+import { PageLoader } from "../ui/Loader";
+import { auth, db } from "../../firebase/firebase";
+import { getUserMessages } from "../../api/AuthApi";
+import { format } from "date-fns";
 
 const MessageInbox = () => {
+  const { isLoading, isMessage, unreadMessage, replyMessage } = useAuth();
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [replyText, setReplyText] = useState("");
-  const [messages, setMessages] = useState(messageData);
+  const [messages, setMessages] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [loadingL, setLoadingL] = useState(false);
+
+  useEffect(() => {
+    if (!auth.currentUser) return;
+
+    setLoadingL(true);
+
+    const unsubscribe = getUserMessages((messages) => {
+      setMessages(messages);
+      setLoadingL(false);
+    });
+
+    return () => unsubscribe(); // Cleanup listener on unmount
+  }, []);
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "Invalid Date";
+
+    // If it's already a string, return as-is
+    if (typeof timestamp === "string") return timestamp;
+
+    // Convert Firestore Timestamp to JS Date
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+
+    return format(date, "MM/dd/yyyy"); // Format using date-fns
+  };
 
   const handleSelectMessage = (message) => {
     const updatedMessages = messages.map((msg) =>
@@ -111,20 +85,25 @@ const MessageInbox = () => {
 
   const handleReply = () => {
     if (replyText.trim() === "") return;
-
+    replyMessage(selectedMessage.receiverId, selectedMessage.docId, replyText);
     toast.success("Reply sent successfully!");
     setReplyDialogOpen(false);
     setReplyText("");
+    setSelectedMessage(null);
   };
+  const filteredMessages =
+    messages.length > 0 &&
+    messages?.filter(
+      (message) =>
+        message?.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        message?.sender?.name
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        message?.event?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-  const filteredMessages = messages.filter(
-    (message) =>
-      message.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      message.sender.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      message.event.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const unreadCount = messages.filter((message) => message.unread).length;
+  const unreadCount =
+    messages.length > 0 && messages?.filter((message) => message.unread).length;
 
   const markAsRead = (messageId) => {
     const updatedMessages = messages.map((msg) =>
@@ -138,6 +117,24 @@ const MessageInbox = () => {
     // In a real app, would move to archive. Here we just notify
     toast.success("Message archived");
   };
+
+  if (isLoading || loadingL) return <PageLoader />;
+
+  if (messages.length <= 0)
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center text-muted-foreground gap-3">
+        <Mail className="h-12 w-12 text-muted-foreground/50" />
+        <p>No Messagies availab</p>
+      </div>
+    );
+
+  if (isMessage)
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center text-muted-foreground gap-3">
+        <Mail className="h-12 w-12 text-muted-foreground/50" />
+        <p>Please enable the Mesaging from settings</p>
+      </div>
+    );
 
   return (
     <div className="flex flex-col space-y-6">
@@ -158,7 +155,7 @@ const MessageInbox = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <DropdownMenu>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="rounded-full">
                 <Filter className="h-4 w-4" />
@@ -171,7 +168,7 @@ const MessageInbox = () => {
               <DropdownMenuItem>Recent</DropdownMenuItem>
               <DropdownMenuItem>All Messages</DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
         </div>
       </div>
 
@@ -190,7 +187,7 @@ const MessageInbox = () => {
                   </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger
+              {/* <TabsTrigger
                 value="sent"
                 className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
               >
@@ -201,7 +198,7 @@ const MessageInbox = () => {
                 className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
               >
                 Archived
-              </TabsTrigger>
+              </TabsTrigger> */}
             </TabsList>
           </div>
 
@@ -209,13 +206,14 @@ const MessageInbox = () => {
             <div className="grid lg:grid-cols-[300px_1fr] h-[600px]">
               {/* Message list */}
               <div className="border-r overflow-y-auto bg-gray-50/50 dark:bg-gray-900/50">
-                {filteredMessages.length === 0 ? (
+                {filteredMessages?.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full p-8 text-center text-muted-foreground gap-3">
                     <Mail className="h-12 w-12 text-muted-foreground/50" />
                     <p>No messages found</p>
                   </div>
                 ) : (
-                  filteredMessages.map((message) => (
+                  filteredMessages.length > 0 &&
+                  filteredMessages?.map((message) => (
                     <div
                       key={message.id}
                       className={`p-4 border-b cursor-pointer hover:bg-gray-100/80 dark:hover:bg-gray-800/30 transition-all duration-200 ${
@@ -227,7 +225,12 @@ const MessageInbox = () => {
                           ? "bg-purple-50/70 dark:bg-purple-950/10"
                           : ""
                       }`}
-                      onClick={() => handleSelectMessage(message)}
+                      onClick={() => {
+                        if (message.unread) {
+                          unreadMessage(message.receiverId, message.docId);
+                        }
+                        handleSelectMessage(message);
+                      }}
                     >
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
@@ -255,7 +258,7 @@ const MessageInbox = () => {
                                 <span className="h-2 w-2 rounded-full bg-purple-500 mr-2"></span>
                               )}
                               <span className="text-xs text-muted-foreground">
-                                {message.date}
+                                {formatDate(message.date)}
                               </span>
                             </div>
                           </div>
@@ -267,7 +270,7 @@ const MessageInbox = () => {
                             {message.subject}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {message.preview}
+                            {message.preview}...
                           </p>
                         </div>
                       </div>
@@ -278,7 +281,7 @@ const MessageInbox = () => {
                         >
                           {message.event}
                         </Badge>
-                        <DropdownMenu>
+                        {/* <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
                               variant="ghost"
@@ -304,7 +307,7 @@ const MessageInbox = () => {
                               Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
-                        </DropdownMenu>
+                        </DropdownMenu> */}
                       </div>
                     </div>
                   ))
@@ -340,7 +343,7 @@ const MessageInbox = () => {
                           </div>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {selectedMessage.date}
+                          {formatDate(selectedMessage.date)}
                         </div>
                       </div>
                       <Badge
@@ -355,12 +358,23 @@ const MessageInbox = () => {
 
                     <div className="flex-grow bg-gray-50/50 dark:bg-gray-900/20 p-4 rounded-lg">
                       <div className="whitespace-pre-line text-sm leading-relaxed">
+                        <b className="font-mono">Message:</b>{" "}
                         {selectedMessage.message}
                       </div>
                     </div>
 
+                    {selectedMessage.replies?.map((reply) => (
+                      <div
+                        key={reply}
+                        className="whitespace-pre-line text-sm leading-relaxed"
+                      >
+                        <b className="font-mono">Your Reply</b>{" "}
+                        {reply.replyData}
+                      </div>
+                    ))}
+
                     <div className="mt-6 pt-4 border-t flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 opacity-0 cursor-not-allowed">
                         <Button
                           variant="outline"
                           size="sm"
